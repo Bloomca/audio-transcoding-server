@@ -3,18 +3,16 @@ import { mkdir } from "node:fs/promises";
 import { pipeline } from "node:stream/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import os from "node:os";
 import type { FastifyInstance } from "fastify";
 import type { MultipartFile } from "@fastify/multipart";
-
-const UPLOAD_DIR = path.join(os.tmpdir(), "audio-transcoding");
+import { config } from "../../shared/config.js";
 
 async function handleTranscodeRequest(file: MultipartFile) {
-  await mkdir(UPLOAD_DIR, { recursive: true });
+  await mkdir(config.storagePath, { recursive: true });
 
   const ext = path.extname(file.filename);
   const savedFilename = `${randomUUID()}${ext}`;
-  const savedPath = path.join(UPLOAD_DIR, savedFilename);
+  const savedPath = path.join(config.storagePath, savedFilename);
 
   await pipeline(file.file, createWriteStream(savedPath));
 }
