@@ -34,44 +34,37 @@ function buildForm(options: { file?: boolean; outputFormat?: string } = {}) {
   return form;
 }
 
-describe("POST /transcode", () => {
-  it("returns 202 with jobId and enqueues a transcode job", async () => {
-    const app = buildApp();
-    const form = buildForm({ outputFormat: "mp3" });
+async function submitTranscodeRequest(outputFormat = "mp3") {
+  const app = buildApp();
+  const form = buildForm({ outputFormat });
+  const response = await app.inject({
+    method: "POST",
+    url: "/transcode",
+    payload: form,
+    headers: form.getHeaders(),
+  });
+  return { app, response, id: response.json().id };
+}
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/transcode",
-      payload: form,
-      headers: form.getHeaders(),
-    });
+describe("POST /transcode", () => {
+  it("returns 202 with id and enqueues a transcode request", async () => {
+    const { response, id } = await submitTranscodeRequest();
 
     expect(response.statusCode).toBe(202);
+    expect(typeof id).toBe("string");
 
-    const { jobId } = response.json();
-    expect(typeof jobId).toBe("string");
-
-    const job = await queue.getJob(jobId);
+    const job = await queue.getJob(id);
     expect(job).toBeDefined();
-    expect(job?.data.jobId).toBe(jobId);
+    expect(job?.data.jobId).toBe(id);
     expect(job?.data.outputFormat).toBe("mp3");
     expect(job?.data.originalFilename).toBe("test.flac");
     expect(job?.data.savedFilename).toMatch(/^[\w-]+\.flac$/);
   });
 
   it("saves the file to storage", async () => {
-    const app = buildApp();
-    const form = buildForm({ outputFormat: "mp3" });
+    const { id } = await submitTranscodeRequest();
 
-    const response = await app.inject({
-      method: "POST",
-      url: "/transcode",
-      payload: form,
-      headers: form.getHeaders(),
-    });
-
-    const { jobId } = response.json();
-    const job = await queue.getJob(jobId);
+    const job = await queue.getJob(id);
     const filePath = path.join(config.storagePath, job!.data.savedFilename);
 
     await expect(access(filePath)).resolves.toBeUndefined();
@@ -105,5 +98,31 @@ describe("POST /transcode", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toEqual({ error: "outputFormat is required" });
+  });
+});
+
+describe("GET /status/:id", () => {
+  it("returns 404 for unknown id", async () => {
+    const app = buildApp();
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/status/non-existent-id",
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({ error: "Processing request not found" });
+  });
+
+  it("returns pending status for a newly submitted request", async () => {
+    const { app, id } = await submitTranscodeRequest();
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/status/${id}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: "pending" });
   });
 });
