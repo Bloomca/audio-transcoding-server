@@ -4,7 +4,15 @@
   "description": "Audio transcoding server to change audio format while preserving metadata",
   "license": "MIT",
   "author": "Seva Zaikov <mail@bloomca.me>",
-  "scripts": {},
-  "dependencies": {},
-  "devDependencies": {}
+  "scripts": {
+    "dev:redis": "docker compose -f docker-compose.dev.yml up redis",
+    "dev:server": "wait-on tcp:6379 && tsx watch src/server/index.ts",
+    "dev:worker": "wait-on tcp:6379 && tsx watch src/worker/index.ts",
+    "dev": "concurrently -k \"npm run dev:redis\" \"npm run dev:server\" \"npm run dev:worker\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0",
+    "wait-on": "^9.0.4"
+  }
 }
