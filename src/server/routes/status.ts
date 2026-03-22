@@ -26,7 +26,7 @@ export async function statusRoute(app: FastifyInstance) {
     }
 
     if (state === "active") {
-      return reply.send({ status: "processing" });
+      return reply.send({ status: "processing", progress: job.progress ?? 0 });
     }
 
     return reply.send({ status: "pending" });
