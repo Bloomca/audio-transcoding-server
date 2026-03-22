@@ -13,14 +13,17 @@
     "test": "vitest"
   },
   "devDependencies": {
+    "@types/form-data": "^2.2.1",
     "@types/node": "^25.5.0",
     "concurrently": "^9.2.1",
+    "form-data": "^4.0.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0",
     "wait-on": "^9.0.4"
   },
   "dependencies": {
+    "@fastify/multipart": "^9.4.0",
     "fastify": "^5.8.2"
   }
 }
