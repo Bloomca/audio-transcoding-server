@@ -2,8 +2,8 @@ import { spawn } from "node:child_process";
 import type { OutputFormat } from "../shared/formats.js";
 
 const CODEC_ARGS: Record<OutputFormat, string[]> = {
-  mp3: ["-codec:a", "libmp3lame", "-q:a", "0"],
-  ogg: ["-codec:a", "libvorbis", "-q:a", "10"],
+  mp3: ["-codec:a", "libmp3lame", "-q:a", "0", "-map_metadata", "0", "-id3v2_version", "3"],
+  ogg: ["-codec:a", "libvorbis", "-q:a", "10", "-map_metadata", "0"],
 };
 
 export async function probe(inputPath: string): Promise<{ durationSecs: number }> {
