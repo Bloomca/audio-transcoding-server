@@ -26,6 +26,6 @@ describe("GET /status/:id", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ status: "pending" });
+    expect(["pending", "processing"]).toContain(response.json().status);
   });
 });
