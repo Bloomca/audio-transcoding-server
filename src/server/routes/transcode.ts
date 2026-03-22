@@ -62,6 +62,6 @@ export async function transcodeRoute(app: FastifyInstance) {
       outputFormat
     );
 
-    return reply.code(202).send({ jobId });
+    return reply.code(202).send({ id: jobId });
   });
 }

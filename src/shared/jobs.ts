@@ -4,3 +4,7 @@ export interface TranscodeJobData {
   originalFilename: string;
   outputFormat: string;
 }
+
+export interface TranscodeJobResult {
+  outputFilename: string;
+}
