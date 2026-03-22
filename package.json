@@ -1,0 +1,10 @@
+{
+  "name": "audio-transcoding-server",
+  "version": "1.0.0",
+  "description": "Audio transcoding server to change audio format while preserving metadata",
+  "license": "MIT",
+  "author": "Seva Zaikov <mail@bloomca.me>",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}
