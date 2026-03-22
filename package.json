@@ -1,5 +1,6 @@
 {
   "name": "audio-transcoding-server",
+  "type": "module",
   "version": "1.0.0",
   "description": "Audio transcoding server to change audio format while preserving metadata",
   "license": "MIT",
@@ -11,8 +12,13 @@
     "dev": "concurrently -k \"npm run dev:redis\" \"npm run dev:server\" \"npm run dev:worker\""
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "concurrently": "^9.2.1",
     "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "wait-on": "^9.0.4"
+  },
+  "dependencies": {
+    "fastify": "^5.8.2"
   }
 }
