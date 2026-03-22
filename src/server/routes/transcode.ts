@@ -37,7 +37,10 @@ export async function transcodeRoute(app: FastifyInstance) {
       return reply.code(400).send({ error: "No file provided" });
     }
 
-    const outputFormat = (data.fields.outputFormat as { value: string } | undefined)?.value ?? "mp3";
+    const outputFormat = (data.fields.outputFormat as { value: string } | undefined)?.value;
+    if (!outputFormat) {
+      return reply.code(400).send({ error: "outputFormat is required" });
+    }
 
     const jobId = await handleTranscodeRequest(data, outputFormat);
 
