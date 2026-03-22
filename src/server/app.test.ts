@@ -99,6 +99,21 @@ describe("POST /transcode", () => {
     expect(response.statusCode).toBe(400);
     expect(response.json()).toEqual({ error: "outputFormat is required" });
   });
+
+  it("returns 400 for unsupported outputFormat", async () => {
+    const app = buildApp();
+    const form = buildForm({ outputFormat: "wav" });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/transcode",
+      payload: form,
+      headers: form.getHeaders(),
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error).toContain("Unsupported output format");
+  });
 });
 
 describe("GET /status/:id", () => {

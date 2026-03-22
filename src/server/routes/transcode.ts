@@ -6,13 +6,14 @@ import path from "node:path";
 import type { FastifyInstance } from "fastify";
 import { config } from "../../shared/config.js";
 import { createTranscodeQueue } from "../../shared/queue.js";
+import { isSupportedFormat, SUPPORTED_FORMATS, type OutputFormat } from "../../shared/formats.js";
 
 const queue = createTranscodeQueue();
 
 async function handleTranscodeRequest(
   savedFilename: string,
   originalFilename: string,
-  outputFormat: string
+  outputFormat: OutputFormat
 ) {
   const jobId = path.basename(savedFilename, path.extname(savedFilename));
 
@@ -54,6 +55,13 @@ export async function transcodeRoute(app: FastifyInstance) {
     if (!outputFormat) {
       await unlink(path.join(config.storagePath, savedFilename));
       return reply.code(400).send({ error: "outputFormat is required" });
+    }
+
+    if (!isSupportedFormat(outputFormat)) {
+      await unlink(path.join(config.storagePath, savedFilename));
+      return reply.code(400).send({
+        error: `Unsupported output format. Supported formats: ${SUPPORTED_FORMATS.join(", ")}`,
+      });
     }
 
     const jobId = await handleTranscodeRequest(
