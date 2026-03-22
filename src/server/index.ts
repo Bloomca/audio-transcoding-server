@@ -1,9 +1,6 @@
-import Fastify from "fastify";
-import { transcodeRoute } from "./routes/transcode.js";
+import { buildApp } from "./app.js";
 
-const app = Fastify({ logger: true });
-
-app.register(transcodeRoute);
+const app = buildApp();
 
 app.listen({ port: 3000, host: "0.0.0.0" }, (err) => {
   if (err) {
