@@ -9,7 +9,13 @@
     "dev:redis": "docker compose -f docker-compose.dev.yml up redis",
     "dev:server": "wait-on tcp:6379 && tsx watch src/server/index.ts",
     "dev:worker": "wait-on tcp:6379 && tsx watch src/worker/index.ts",
-    "dev": "concurrently -k \"npm run dev:redis\" \"npm run dev:server\" \"npm run dev:worker\"",
+    "dev:client": "vite",
+    "dev": "concurrently -k \"npm run dev:redis\" \"npm run dev:server\" \"npm run dev:worker\" \"npm run dev:client\"",
+    "build:server": "tsc -p tsconfig.json",
+    "build:client": "vite build",
+    "build": "npm run build:server && npm run build:client",
+    "start:server": "node dist/server/index.js",
+    "start:worker": "node dist/worker/index.js",
     "test": "vitest"
   },
   "devDependencies": {
@@ -19,12 +25,16 @@
     "form-data": "^4.0.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
+    "vite": "^8.0.1",
     "vitest": "^4.1.0",
     "wait-on": "^9.0.4"
   },
   "dependencies": {
     "@fastify/multipart": "^9.4.0",
+    "@fastify/static": "^9.0.0",
     "bullmq": "^5.71.0",
-    "fastify": "^5.8.2"
+    "fastify": "^5.8.2",
+    "fflate": "^0.8.2",
+    "veles": "^0.0.9"
   }
 }
