@@ -8,7 +8,8 @@ async function fetchAudioEntry(
 ): Promise<{ name: string; data: Uint8Array }> {
   const response = await fetch(`/download/${outputFilename}?id=${jobId}`);
   const disposition = response.headers.get("Content-Disposition");
-  const name = disposition?.match(/filename="([^"]+)"/)?.[1] ?? outputFilename;
+  const rfc5987 = disposition?.match(/filename\*=UTF-8''([^;]+)/)?.[1];
+  const name = rfc5987 ? decodeURIComponent(rfc5987) : (disposition?.match(/filename="([^"]+)"/)?.[1] ?? outputFilename);
   return { name, data: new Uint8Array(await response.arrayBuffer()) };
 }
 

@@ -4,7 +4,7 @@ import { SelectedFilesList } from "./components/SelectedFilesList";
 import type { SelectedFile } from "./components/SelectedFileRow";
 import { openSSE } from "./sseStream";
 import { jobStatusState } from "./jobStatusStore";
-import { downloadZip } from "./downloadZip";
+import { downloadZip } from "./createZip";
 
 function App() {
   const selectedFilesState = createState<SelectedFile[]>([]);

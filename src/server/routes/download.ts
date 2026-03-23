@@ -46,8 +46,12 @@ export async function downloadRoute(app: FastifyInstance) {
       reply.code(404).send({ error: "File not found" });
     });
 
+    // Use RFC 5987 encoding so non-ASCII filenames don't throw ERR_INVALID_CHAR.
+    // filename= is an ASCII fallback (non-ASCII replaced with _); filename*= carries the real name.
+    const asciiFallback = downloadFilename.replace(/[^\x20-\x7E]/g, "_");
+    const encoded = encodeURIComponent(downloadFilename);
     return reply
-      .header("Content-Disposition", `attachment; filename="${downloadFilename}"`)
+      .header("Content-Disposition", `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`)
       .header("Content-Type", "application/octet-stream")
       .send(stream);
   });
