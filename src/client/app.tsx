@@ -2,6 +2,7 @@ import { createState } from "veles";
 import { FilePicker } from "./components/FilePicker";
 import { SelectedFilesList } from "./components/SelectedFilesList";
 import type { SelectedFile } from "./components/SelectedFileRow";
+import { openSSE } from "./sseStream";
 
 function App() {
   const selectedFilesState = createState<SelectedFile[]>([]);
@@ -30,6 +31,7 @@ function App() {
     selectedFilesState.setValue((prev) =>
       prev.map((f) => (f.id === file.id ? { ...f, jobId } : f))
     );
+    openSSE();
   }
 
   async function handleTranscodeAll(format: string) {
