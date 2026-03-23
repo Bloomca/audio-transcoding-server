@@ -20,12 +20,23 @@ function App() {
     selectedFilesState.setValue((prev) => prev.filter((f) => f.id !== file.id));
   }
 
-  function handleTranscodeFile(_file: SelectedFile, _format: string) {
-    // TODO: wire up transcode API call
+  async function handleTranscodeFile(file: SelectedFile, format: string) {
+    if (file.kind !== "audio" || file.jobId) return;
+    const form = new FormData();
+    form.append("file", file.file);
+    form.append("outputFormat", format);
+    const response = await fetch("/transcode", { method: "POST", body: form });
+    const { id: jobId } = (await response.json()) as { id: string };
+    selectedFilesState.setValue((prev) =>
+      prev.map((f) => (f.id === file.id ? { ...f, jobId } : f))
+    );
   }
 
-  function handleTranscodeAll(_format: string) {
-    // TODO: wire up transcode API call for all audio files
+  async function handleTranscodeAll(format: string) {
+    const files = selectedFilesState.getValue();
+    for (const file of files) {
+      await handleTranscodeFile(file, format);
+    }
   }
 
   return (

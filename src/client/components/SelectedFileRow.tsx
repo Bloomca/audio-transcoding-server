@@ -1,31 +1,41 @@
+import type { State } from "veles";
+
 type SelectedFile = {
   id: string;
   label: string;
   kind: "audio" | "extra";
+  file: File;
+  jobId?: string;
 };
 
 type SelectedFileRowProps = {
-  file: SelectedFile;
+  fileState: State<SelectedFile>;
   onDownload?: (file: SelectedFile) => void;
   onTranscode?: (file: SelectedFile) => void;
   onRemove?: (file: SelectedFile) => void;
 };
 
-function SelectedFileRow({ file, onDownload, onTranscode, onRemove }: SelectedFileRowProps) {
+function SelectedFileRow({ fileState, onDownload, onTranscode, onRemove }: SelectedFileRowProps) {
+  // kind and label never change after creation — read once
+  const { kind, label } = fileState.getValue();
   return (
     <li>
-      <span>{file.label}</span>
-      {file.kind === "audio" && (
-        <button type="button" onClick={() => onTranscode?.(file)}>
+      <span>{label}</span>
+      {kind === "audio" && (
+        <button
+          type="button"
+          disabled={fileState.useAttribute((f) => !!f.jobId)}
+          onClick={() => onTranscode?.(fileState.getValue())}
+        >
           Transcode
         </button>
       )}
-      {file.kind === "audio" && (
-        <button type="button" onClick={() => onDownload?.(file)}>
+      {kind === "audio" && (
+        <button type="button" onClick={() => onDownload?.(fileState.getValue())}>
           Download
         </button>
       )}
-      <button type="button" onClick={() => onRemove?.(file)}>
+      <button type="button" onClick={() => onRemove?.(fileState.getValue())}>
         Remove
       </button>
     </li>

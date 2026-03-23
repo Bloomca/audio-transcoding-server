@@ -34,7 +34,7 @@ function SelectedFilesList({
           </label>
           <button
             type="button"
-            disabled={filesState.useAttribute((files) => files.filter((f) => f.kind === "audio").length === 0)}
+            disabled={filesState.useAttribute((files) => !files.some((f) => f.kind === "audio"))}
             onClick={() => onTranscodeAll?.(formatRef.current?.value ?? "mp3")}
           >
             Transcode all
@@ -50,49 +50,53 @@ function SelectedFilesList({
       </div>
 
       <p className="selection-summary">
-        {filesState.useValueSelector((files) => files.length, (count) => {
-          if (count === 0) {
-            return "No files selected yet.";
+        {filesState.useValueSelector(
+          (files) => files.length,
+          (count) => {
+            if (count === 0) return "No files selected yet.";
+            return `${count} file${count === 1 ? "" : "s"} selected.`;
           }
-
-          return `${count} file${count === 1 ? "" : "s"} selected.`;
-        })}
+        )}
       </p>
 
-      {filesState.useValue((files) => {
-        const audioFiles = files.filter((f) => f.kind === "audio");
-        if (audioFiles.length === 0) return null;
-        return (
-          <div className="file-group">
-            <h3>Tracks</h3>
-            <ul className="selection-list">
-              {audioFiles.map((file) => (
+      <div
+        className="file-group"
+        hidden={filesState.useAttribute((files) => !files.some((f) => f.kind === "audio"))}
+      >
+        <h3>Tracks</h3>
+        <ul className="selection-list">
+          {filesState.useValueIterator<SelectedFile>(
+            { key: ({ element }) => element.label },
+            ({ elementState }) => {
+              if (elementState.getValue().kind !== "audio") return <div />;
+              return (
                 <SelectedFileRow
-                  file={file}
+                  fileState={elementState}
                   onDownload={onDownloadFile}
                   onTranscode={(f) => onTranscodeFile?.(f, formatRef.current?.value ?? "mp3")}
                   onRemove={onRemoveFile}
                 />
-              ))}
-            </ul>
-          </div>
-        );
-      })}
+              );
+            }
+          )}
+        </ul>
+      </div>
 
-      {filesState.useValue((files) => {
-        const extraFiles = files.filter((f) => f.kind === "extra");
-        if (extraFiles.length === 0) return null;
-        return (
-          <div className="file-group">
-            <h3>Extra files</h3>
-            <ul className="selection-list">
-              {extraFiles.map((file) => (
-                <SelectedFileRow file={file} onRemove={onRemoveFile} />
-              ))}
-            </ul>
-          </div>
-        );
-      })}
+      <div
+        className="file-group"
+        hidden={filesState.useAttribute((files) => !files.some((f) => f.kind === "extra"))}
+      >
+        <h3>Extra files</h3>
+        <ul className="selection-list">
+          {filesState.useValueIterator<SelectedFile>(
+            { key: ({ element }) => element.label },
+            ({ elementState }) => {
+              if (elementState.getValue().kind !== "extra") return <div />;
+              return <SelectedFileRow fileState={elementState} onRemove={onRemoveFile} />;
+            }
+          )}
+        </ul>
+      </div>
     </section>
   );
 }

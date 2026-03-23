@@ -30,6 +30,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
       id: crypto.randomUUID(),
       label: file.name,
       kind: getFileKind(file.name),
+      file,
     }));
     onPickTracks?.(files);
     input.value = "";
@@ -43,6 +44,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
       id: crypto.randomUUID(),
       label: file.webkitRelativePath,
       kind: getFileKind(file.name),
+      file,
     }));
     onPickFolders?.(files, directoryName);
     input.value = "";
