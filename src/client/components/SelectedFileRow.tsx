@@ -26,9 +26,25 @@ function SelectedFileRow({ fileState, onDownload, onTranscode, onRemove }: Selec
     ([file, statusMap]) => !!file.jobId && statusMap.get(file.jobId)?.status === "completed"
   );
 
+  const progressState = select(
+    combine(fileState, jobStatusState),
+    ([file, statusMap]) => {
+      if (!file.jobId) return null;
+      const entry = statusMap.get(file.jobId);
+      return entry?.status === "processing" ? entry.progress : null;
+    }
+  );
+
   return (
     <li>
       <span>{label}</span>
+      {kind === "audio" && (
+        <progress
+          hidden={progressState.useAttribute((p) => p === null)}
+          value={progressState.useAttribute((p) => p ?? 0)}
+          max={100}
+        />
+      )}
       {kind === "audio" && (
         <button
           type="button"
