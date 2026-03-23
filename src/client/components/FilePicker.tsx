@@ -42,7 +42,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     const directoryName = input.files[0].webkitRelativePath.split("/")[0];
     const files: SelectedFile[] = Array.from(input.files).map((file) => ({
       id: crypto.randomUUID(),
-      label: file.webkitRelativePath,
+      label: file.webkitRelativePath.slice(directoryName.length + 1),
       kind: getFileKind(file.name),
       file,
     }));
