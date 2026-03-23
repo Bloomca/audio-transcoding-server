@@ -1,6 +1,15 @@
 import { createRef, onMount } from "veles";
 import type { SelectedFile } from "./SelectedFileRow";
 
+const AUDIO_EXTENSIONS = new Set([
+  "flac", "mp3", "ogg", "wav", "aac", "m4a", "aiff", "aif", "opus", "wma", "ape",
+]);
+
+function getFileKind(filename: string): SelectedFile["kind"] {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  return AUDIO_EXTENSIONS.has(ext) ? "audio" : "extra";
+}
+
 type FilePickerProps = {
   onPickTracks?: (files: SelectedFile[]) => void;
   onPickFolders?: (files: SelectedFile[], directoryName: string) => void;
@@ -20,6 +29,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     const files: SelectedFile[] = Array.from(input.files).map((file) => ({
       id: crypto.randomUUID(),
       label: file.name,
+      kind: getFileKind(file.name),
     }));
     onPickTracks?.(files);
     input.value = "";
@@ -32,6 +42,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     const files: SelectedFile[] = Array.from(input.files).map((file) => ({
       id: crypto.randomUUID(),
       label: file.webkitRelativePath,
+      kind: getFileKind(file.name),
     }));
     onPickFolders?.(files, directoryName);
     input.value = "";

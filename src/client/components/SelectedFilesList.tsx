@@ -35,15 +35,35 @@ function SelectedFilesList({
         })}
       </p>
 
-      <ul className="selection-list">
-        {filesState.useValueIterator(
-          { key: ({ element }) => element.id },
-          ({ elementState }) =>
-            elementState.useValue((file) => (
-              <SelectedFileRow file={file} onDownload={onDownloadFile} />
-            ))
-        )}
-      </ul>
+      {filesState.useValue((files) => {
+        const audioFiles = files.filter((f) => f.kind === "audio");
+        if (audioFiles.length === 0) return null;
+        return (
+          <div className="file-group">
+            <h3>Tracks</h3>
+            <ul className="selection-list">
+              {audioFiles.map((file) => (
+                <SelectedFileRow file={file} onDownload={onDownloadFile} />
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+
+      {filesState.useValue((files) => {
+        const extraFiles = files.filter((f) => f.kind === "extra");
+        if (extraFiles.length === 0) return null;
+        return (
+          <div className="file-group">
+            <h3>Extra files</h3>
+            <ul className="selection-list">
+              {extraFiles.map((file) => (
+                <SelectedFileRow file={file} />
+              ))}
+            </ul>
+          </div>
+        );
+      })}
     </section>
   );
 }

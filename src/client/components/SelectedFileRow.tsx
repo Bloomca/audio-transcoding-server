@@ -1,6 +1,7 @@
 type SelectedFile = {
   id: string;
   label: string;
+  kind: "audio" | "extra";
 };
 
 type SelectedFileRowProps = {
@@ -12,9 +13,11 @@ function SelectedFileRow({ file, onDownload }: SelectedFileRowProps) {
   return (
     <li>
       <span>{file.label}</span>
-      <button type="button" onClick={() => onDownload?.(file)}>
-        Download
-      </button>
+      {file.kind === "audio" && (
+        <button type="button" onClick={() => onDownload?.(file)}>
+          Download
+        </button>
+      )}
     </li>
   );
 }
