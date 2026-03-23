@@ -7,6 +7,7 @@ import type { FastifyInstance } from "fastify";
 import { config } from "../../shared/config.js";
 import { createTranscodeQueue } from "../../shared/queue.js";
 import { isSupportedFormat, SUPPORTED_FORMATS, type OutputFormat } from "../../shared/formats.js";
+import { getOrCreateSession, addJobToSession, sessionCookie } from "../session-store.js";
 
 const queue = createTranscodeQueue();
 
@@ -69,6 +70,12 @@ export async function transcodeRoute(app: FastifyInstance) {
       originalFilename,
       outputFormat
     );
+
+    const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
+    addJobToSession(sessionId, jobId);
+    if (isNew) {
+      reply.header("Set-Cookie", sessionCookie(sessionId));
+    }
 
     return reply.code(202).send({ id: jobId });
   });
