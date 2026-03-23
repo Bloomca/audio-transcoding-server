@@ -5,19 +5,28 @@ import type { SelectedFile } from "./components/SelectedFileRow";
 
 function App() {
   const selectedFilesState = createState<SelectedFile[]>([]);
+  const directoryNameState = createState<string | null>(null);
+
+  function handlePickTracks(files: SelectedFile[]) {
+    selectedFilesState.setValue((prev) => [...prev, ...files]);
+  }
+
+  function handlePickFolders(files: SelectedFile[], directoryName: string) {
+    directoryNameState.setValue(directoryName);
+    selectedFilesState.setValue((prev) => [...prev, ...files]);
+  }
 
   return (
     <main className="shell">
       <section className="hero">
-        <p className="eyebrow">Audio Transcoding Server</p>
-        <h1>Convert albums or individual tracks without handing the flow to another service.</h1>
+        <p className="eyebrow"></p>
+        <h1>Audio Transcoding Server</h1>
         <p className="lede">
-          Start with the picker, then render selected tracks as individually downloadable items with
-          a ZIP action for the full batch.
+          Upload tracks in any common format and transcode to some other format.
         </p>
       </section>
 
-      <FilePicker />
+      <FilePicker onPickTracks={handlePickTracks} onPickFolders={handlePickFolders} />
       <SelectedFilesList filesState={selectedFilesState} />
     </main>
   );
