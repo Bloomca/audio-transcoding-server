@@ -3,10 +3,13 @@ import { FilePicker } from "./components/FilePicker";
 import { SelectedFilesList } from "./components/SelectedFilesList";
 import type { SelectedFile } from "./components/SelectedFileRow";
 import { openSSE } from "./sseStream";
+import { jobStatusState } from "./jobStatusStore";
+import { downloadZip } from "./downloadZip";
 
 function App() {
   const selectedFilesState = createState<SelectedFile[]>([]);
   const directoryNameState = createState<string | null>(null);
+  const isZippingState = createState(false);
 
   function handlePickTracks(files: SelectedFile[]) {
     selectedFilesState.setValue((prev) => [...prev, ...files]);
@@ -34,6 +37,19 @@ function App() {
     openSSE();
   }
 
+  async function handleDownloadAll() {
+    isZippingState.setValue(true);
+    try {
+      await downloadZip(
+        selectedFilesState.getValue(),
+        jobStatusState.getValue(),
+        directoryNameState.getValue()
+      );
+    } finally {
+      isZippingState.setValue(false);
+    }
+  }
+
   async function handleTranscodeAll(format: string) {
     const files = selectedFilesState.getValue();
     for (const file of files) {
@@ -54,9 +70,11 @@ function App() {
       <FilePicker onPickTracks={handlePickTracks} onPickFolders={handlePickFolders} />
       <SelectedFilesList
         filesState={selectedFilesState}
+        isZippingState={isZippingState}
         onRemoveFile={handleRemoveFile}
         onTranscodeFile={handleTranscodeFile}
         onTranscodeAll={handleTranscodeAll}
+        onDownloadAll={handleDownloadAll}
       />
     </main>
   );

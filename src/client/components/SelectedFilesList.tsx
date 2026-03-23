@@ -1,8 +1,10 @@
 import { createRef, type State } from "veles";
+import { combine } from "veles/utils";
 import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
 
 type SelectedFilesListProps = {
   filesState: State<SelectedFile[]>;
+  isZippingState: State<boolean>;
   onDownloadAll?: () => void;
   onTranscodeFile?: (file: SelectedFile, format: string) => void;
   onTranscodeAll?: (format: string) => void;
@@ -11,6 +13,7 @@ type SelectedFilesListProps = {
 
 function SelectedFilesList({
   filesState,
+  isZippingState,
   onDownloadAll,
   onTranscodeFile,
   onTranscodeAll,
@@ -39,7 +42,9 @@ function SelectedFilesList({
           </button>
           <button
             type="button"
-            disabled={filesState.useAttribute((files) => files.length === 0)}
+            disabled={combine(filesState, isZippingState).useAttribute(
+              ([files, isZipping]) => files.length === 0 || isZipping
+            )}
             onClick={onDownloadAll}
           >
             Download ZIP
