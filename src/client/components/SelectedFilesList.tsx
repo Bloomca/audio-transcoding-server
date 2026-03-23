@@ -3,7 +3,6 @@ import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
 
 type SelectedFilesListProps = {
   filesState: State<SelectedFile[]>;
-  onDownloadFile?: (file: SelectedFile) => void;
   onDownloadAll?: () => void;
   onTranscodeFile?: (file: SelectedFile, format: string) => void;
   onTranscodeAll?: (format: string) => void;
@@ -12,7 +11,6 @@ type SelectedFilesListProps = {
 
 function SelectedFilesList({
   filesState,
-  onDownloadFile,
   onDownloadAll,
   onTranscodeFile,
   onTranscodeAll,
@@ -72,7 +70,6 @@ function SelectedFilesList({
               return (
                 <SelectedFileRow
                   fileState={elementState}
-                  onDownload={onDownloadFile}
                   onTranscode={(f) => onTranscodeFile?.(f, formatRef.current?.value ?? "mp3")}
                   onRemove={onRemoveFile}
                 />

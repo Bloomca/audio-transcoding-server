@@ -12,18 +12,22 @@ type SelectedFile = {
 
 type SelectedFileRowProps = {
   fileState: State<SelectedFile>;
-  onDownload?: (file: SelectedFile) => void;
   onTranscode?: (file: SelectedFile) => void;
   onRemove?: (file: SelectedFile) => void;
 };
 
-function SelectedFileRow({ fileState, onDownload, onTranscode, onRemove }: SelectedFileRowProps) {
+function SelectedFileRow({ fileState, onTranscode, onRemove }: SelectedFileRowProps) {
   // kind and label never change after creation — read once
   const { kind, label } = fileState.getValue();
 
-  const downloadEnabled = select(
+  const downloadUrlState = select(
     combine(fileState, jobStatusState),
-    ([file, statusMap]) => !!file.jobId && statusMap.get(file.jobId)?.status === "completed"
+    ([file, statusMap]) => {
+      if (!file.jobId) return null;
+      const entry = statusMap.get(file.jobId);
+      if (entry?.status !== "completed") return null;
+      return `/download/${entry.outputFilename}?id=${file.jobId}`;
+    }
   );
 
   const progressState = select(
@@ -55,13 +59,13 @@ function SelectedFileRow({ fileState, onDownload, onTranscode, onRemove }: Selec
         </button>
       )}
       {kind === "audio" && (
-        <button
-          type="button"
-          disabled={downloadEnabled.useAttribute((enabled) => !enabled)}
-          onClick={() => onDownload?.(fileState.getValue())}
+        <a
+          href={downloadUrlState.useAttribute((url) => url ?? "")}
+          hidden={downloadUrlState.useAttribute((url) => url === null)}
+          download
         >
           Download
-        </button>
+        </a>
       )}
       <button type="button" onClick={() => onRemove?.(fileState.getValue())}>
         Remove
