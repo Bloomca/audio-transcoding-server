@@ -16,6 +16,18 @@ function App() {
     selectedFilesState.setValue((prev) => [...prev, ...files]);
   }
 
+  function handleRemoveFile(file: SelectedFile) {
+    selectedFilesState.setValue((prev) => prev.filter((f) => f.id !== file.id));
+  }
+
+  function handleTranscodeFile(_file: SelectedFile, _format: string) {
+    // TODO: wire up transcode API call
+  }
+
+  function handleTranscodeAll(_format: string) {
+    // TODO: wire up transcode API call for all audio files
+  }
+
   return (
     <main className="shell">
       <section className="hero">
@@ -27,7 +39,12 @@ function App() {
       </section>
 
       <FilePicker onPickTracks={handlePickTracks} onPickFolders={handlePickFolders} />
-      <SelectedFilesList filesState={selectedFilesState} />
+      <SelectedFilesList
+        filesState={selectedFilesState}
+        onRemoveFile={handleRemoveFile}
+        onTranscodeFile={handleTranscodeFile}
+        onTranscodeAll={handleTranscodeAll}
+      />
     </main>
   );
 }
