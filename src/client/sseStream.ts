@@ -13,7 +13,7 @@ function openSSE() {
   eventSource = new EventSource("/status/stream");
   eventSource.onmessage = (event: MessageEvent<string>) => {
     const data = JSON.parse(event.data) as SSEEvent;
-    jobStatusState.setValue((prev) => {
+    jobStatusState.update((prev) => {
       const next = new Map(prev);
       const { jobId, ...rest } = data;
       next.set(jobId, rest as JobStatus);
