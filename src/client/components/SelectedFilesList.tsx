@@ -1,5 +1,4 @@
 import { createRef, type State } from "veles";
-import { combine } from "veles/utils";
 import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
 
 type SelectedFilesListProps = {
@@ -21,30 +20,37 @@ function SelectedFilesList({
 }: SelectedFilesListProps) {
   const formatRef = createRef<HTMLSelectElement>();
 
+  const audioFilesState = filesState.map((files) =>
+    files.filter((file) => file.kind === "audio")
+  );
+  const extraFilesState = filesState.map((files) =>
+    files.filter((file) => file.kind === "extra")
+  );
+
   return (
-    <section className="panel selection" aria-live="polite">
-      <div className="selection-header">
+    <section class="panel selection" aria-live="polite">
+      <div class="selection-header">
         <h2>Selected files</h2>
-        <div className="selection-actions">
+        <div class="selection-actions">
           <label>
             Format
-            <select ref={formatRef} defaultValue="mp3">
+            <select ref={formatRef} value="mp3">
               <option value="mp3">MP3</option>
               <option value="ogg">OGG</option>
             </select>
           </label>
           <button
             type="button"
-            disabled={filesState.useAttribute((files) => !files.some((f) => f.kind === "audio"))}
+            disabled={audioFilesState.attribute((files) => files.length === 0)}
             onClick={() => onTranscodeAll?.(formatRef.current?.value ?? "mp3")}
           >
             Transcode all
           </button>
           <button
             type="button"
-            disabled={combine(filesState, isZippingState).useAttribute(
-              ([files, isZipping]) => files.length === 0 || isZipping
-            )}
+            disabled={filesState
+              .combine(isZippingState)
+              .attribute(([files, isZipping]) => files.length === 0 || isZipping)}
             onClick={onDownloadAll}
           >
             Download ZIP
@@ -52,8 +58,8 @@ function SelectedFilesList({
         </div>
       </div>
 
-      <p className="selection-summary">
-        {filesState.useValueSelector(
+      <p class="selection-summary">
+        {filesState.renderSelected(
           (files) => files.length,
           (count) => {
             if (count === 0) return "No files selected yet.";
@@ -63,40 +69,32 @@ function SelectedFilesList({
       </p>
 
       <div
-        className="file-group"
-        hidden={filesState.useAttribute((files) => !files.some((f) => f.kind === "audio"))}
+        class="file-group"
+        hidden={audioFilesState.attribute((files) => files.length === 0)}
       >
         <h3>Tracks</h3>
-        <ul className="selection-list">
-          {filesState.useValueIterator<SelectedFile>(
-            { key: ({ element }) => element.label },
-            ({ elementState }) => {
-              if (elementState.getValue().kind !== "audio") return <div />;
-              return (
-                <SelectedFileRow
-                  fileState={elementState}
-                  onTranscode={(f) => onTranscodeFile?.(f, formatRef.current?.value ?? "mp3")}
-                  onRemove={onRemoveFile}
-                />
-              );
-            }
-          )}
+        <ul class="selection-list">
+          {audioFilesState.renderEach({ key: "id" }, ({ elementState }) => {
+            return (
+              <SelectedFileRow
+                fileState={elementState}
+                onTranscode={(f) => onTranscodeFile?.(f, formatRef.current?.value ?? "mp3")}
+                onRemove={onRemoveFile}
+              />
+            );
+          })}
         </ul>
       </div>
 
       <div
-        className="file-group"
-        hidden={filesState.useAttribute((files) => !files.some((f) => f.kind === "extra"))}
+        class="file-group"
+        hidden={extraFilesState.attribute((files) => files.length === 0)}
       >
         <h3>Extra files</h3>
-        <ul className="selection-list">
-          {filesState.useValueIterator<SelectedFile>(
-            { key: ({ element }) => element.label },
-            ({ elementState }) => {
-              if (elementState.getValue().kind !== "extra") return <div />;
-              return <SelectedFileRow fileState={elementState} onRemove={onRemoveFile} />;
-            }
-          )}
+        <ul class="selection-list">
+          {extraFilesState.renderEach({ key: "id" }, ({ elementState }) => {
+            return <SelectedFileRow fileState={elementState} onRemove={onRemoveFile} />;
+          })}
         </ul>
       </div>
     </section>

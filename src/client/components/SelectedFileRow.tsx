@@ -1,5 +1,4 @@
 import type { State } from "veles";
-import { combine, select } from "veles/utils";
 import { jobStatusState } from "../jobStatusStore";
 
 type SelectedFile = {
@@ -16,58 +15,58 @@ type SelectedFileRowProps = {
   onRemove?: (file: SelectedFile) => void;
 };
 
-function SelectedFileRow({ fileState, onTranscode, onRemove }: SelectedFileRowProps) {
+function SelectedFileRow({
+  fileState,
+  onTranscode,
+  onRemove,
+}: SelectedFileRowProps) {
   // kind and label never change after creation — read once
-  const { kind, label } = fileState.getValue();
+  const { kind, label } = fileState.get();
 
-  const downloadUrlState = select(
-    combine(fileState, jobStatusState),
-    ([file, statusMap]) => {
-      if (!file.jobId) return null;
-      const entry = statusMap.get(file.jobId);
-      if (entry?.status !== "completed") return null;
-      return `/download/${entry.outputFilename}?id=${file.jobId}`;
-    }
-  );
+  const fileAndStatusState = fileState.combine(jobStatusState);
 
-  const progressState = select(
-    combine(fileState, jobStatusState),
-    ([file, statusMap]) => {
-      if (!file.jobId) return null;
-      const entry = statusMap.get(file.jobId);
-      return entry?.status === "processing" ? entry.progress : null;
-    }
-  );
+  const downloadUrlState = fileAndStatusState.map(([file, statusMap]) => {
+    if (!file.jobId) return null;
+    const entry = statusMap.get(file.jobId);
+    if (entry?.status !== "completed") return null;
+    return `/download/${entry.outputFilename}?id=${file.jobId}`;
+  });
+
+  const progress$ = fileAndStatusState.map(([file, statusMap]) => {
+    if (!file.jobId) return null;
+    const entry = statusMap.get(file.jobId);
+    return entry?.status === "processing" ? entry.progress : null;
+  });
 
   return (
     <li>
       <span>{label}</span>
       {kind === "audio" && (
         <progress
-          hidden={progressState.useAttribute((p) => p === null)}
-          value={progressState.useAttribute((p) => p ?? 0)}
+          hidden={progress$.attribute((p) => p === null)}
+          value={progress$.attribute((p) => p ?? 0)}
           max={100}
         />
       )}
       {kind === "audio" && (
         <button
           type="button"
-          disabled={fileState.useAttribute((f) => !!f.jobId)}
-          onClick={() => onTranscode?.(fileState.getValue())}
+          disabled={fileState.attribute((f) => !!f.jobId)}
+          onClick={() => onTranscode?.(fileState.get())}
         >
           Transcode
         </button>
       )}
       {kind === "audio" && (
         <a
-          href={downloadUrlState.useAttribute((url) => url ?? "")}
-          hidden={downloadUrlState.useAttribute((url) => url === null)}
+          href={downloadUrlState.attribute((url) => url ?? "")}
+          hidden={downloadUrlState.attribute((url) => url === null)}
           download
         >
           Download
         </a>
       )}
-      <button type="button" onClick={() => onRemove?.(fileState.getValue())}>
+      <button type="button" onClick={() => onRemove?.(fileState.get())}>
         Remove
       </button>
     </li>

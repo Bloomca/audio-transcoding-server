@@ -51,13 +51,13 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
   }
 
   return (
-    <section className="panel">
-      <div className="panel-header">
+    <section class="panel">
+      <div class="panel-header">
         <h2>Upload</h2>
         <p>You can upload either tracks or entire folders. To convert an entire album and to preserve extra files like artwork, include it in the uploaded files and download the result as a zip file.</p>
       </div>
 
-      <div className="mode-row">
+      <div class="mode-row">
         <button type="button" onClick={() => trackInputRef.current?.click()}>
           Select tracks
         </button>

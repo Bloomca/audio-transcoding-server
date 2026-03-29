@@ -12,16 +12,16 @@ function App() {
   const isZippingState = createState(false);
 
   function handlePickTracks(files: SelectedFile[]) {
-    selectedFilesState.setValue((prev) => [...prev, ...files]);
+    selectedFilesState.update((prev) => [...prev, ...files]);
   }
 
   function handlePickFolders(files: SelectedFile[], directoryName: string) {
-    directoryNameState.setValue(directoryName);
-    selectedFilesState.setValue((prev) => [...prev, ...files]);
+    directoryNameState.set(directoryName);
+    selectedFilesState.update((prev) => [...prev, ...files]);
   }
 
   function handleRemoveFile(file: SelectedFile) {
-    selectedFilesState.setValue((prev) => prev.filter((f) => f.id !== file.id));
+    selectedFilesState.update((prev) => prev.filter((f) => f.id !== file.id));
   }
 
   async function handleTranscodeFile(file: SelectedFile, format: string) {
@@ -31,38 +31,38 @@ function App() {
     form.append("outputFormat", format);
     const response = await fetch("/transcode", { method: "POST", body: form });
     const { id: jobId } = (await response.json()) as { id: string };
-    selectedFilesState.setValue((prev) =>
+    selectedFilesState.update((prev) =>
       prev.map((f) => (f.id === file.id ? { ...f, jobId } : f))
     );
     openSSE();
   }
 
   async function handleDownloadAll() {
-    isZippingState.setValue(true);
+    isZippingState.set(true);
     try {
       await downloadZip(
-        selectedFilesState.getValue(),
-        jobStatusState.getValue(),
-        directoryNameState.getValue()
+        selectedFilesState.get(),
+        jobStatusState.get(),
+        directoryNameState.get()
       );
     } finally {
-      isZippingState.setValue(false);
+      isZippingState.set(false);
     }
   }
 
   async function handleTranscodeAll(format: string) {
-    const files = selectedFilesState.getValue();
+    const files = selectedFilesState.get();
     for (const file of files) {
       await handleTranscodeFile(file, format);
     }
   }
 
   return (
-    <main className="shell">
-      <section className="hero">
-        <p className="eyebrow"></p>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow"></p>
         <h1>Audio Transcoding Server</h1>
-        <p className="lede">
+        <p class="lede">
           Upload tracks in any common format and transcode to some other format.
         </p>
       </section>
