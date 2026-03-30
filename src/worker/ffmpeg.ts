@@ -2,8 +2,46 @@ import { spawn } from "node:child_process";
 import type { OutputFormat } from "../shared/formats.js";
 
 const CODEC_ARGS: Record<OutputFormat, string[]> = {
-  mp3: ["-codec:a", "libmp3lame", "-q:a", "0", "-map_metadata", "0", "-id3v2_version", "3"],
+  mp3: [
+    "-codec:a",
+    "libmp3lame",
+    "-q:a",
+    "0",
+    "-map_metadata",
+    "0",
+    "-id3v2_version",
+    "3",
+  ],
   ogg: ["-codec:a", "libvorbis", "-q:a", "10", "-map_metadata", "0"],
+  m4a: [
+    "-codec:a",
+    "aac",
+    "-b:a",
+    "256k",
+    "-map_metadata",
+    "0",
+    "-movflags",
+    "+faststart",
+  ],
+  opus: [
+    "-codec:a",
+    "libopus",
+    "-b:a",
+    "192k",
+    "-vbr",
+    "on",
+    "-map_metadata",
+    "0",
+  ],
+  alac: [
+    "-codec:a",
+    "alac",
+    "-map_metadata",
+    "0",
+    "-movflags",
+    "+faststart",
+  ],
+  flac: ["-codec:a", "flac", "-compression_level", "12", "-map_metadata", "0"],
 };
 
 export async function probe(inputPath: string): Promise<{ durationSecs: number }> {

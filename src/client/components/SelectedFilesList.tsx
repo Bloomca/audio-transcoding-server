@@ -1,5 +1,11 @@
 import { createRef, type State } from "veles";
+import { FORMAT_CONFIG, type OutputFormat } from "../../shared/formats.js";
 import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
+
+const DEFAULT_OUTPUT_FORMAT: OutputFormat = "mp3";
+const OUTPUT_FORMAT_OPTIONS = Object.entries(FORMAT_CONFIG) as Array<
+  [OutputFormat, (typeof FORMAT_CONFIG)[OutputFormat]]
+>;
 
 type SelectedFilesListProps = {
   files$: State<SelectedFile[]>;
@@ -34,15 +40,16 @@ function SelectedFilesList({
         <div class="buttons">
           <label class="format-label">
             Format{" "}
-            <select name="format" ref={formatRef} value="mp3">
-              <option value="mp3">MP3</option>
-              <option value="ogg">OGG</option>
+            <select name="format" ref={formatRef} value={DEFAULT_OUTPUT_FORMAT}>
+              {OUTPUT_FORMAT_OPTIONS.map(([value, config]) => (
+                <option value={value}>{config.label}</option>
+              ))}
             </select>
           </label>
           <button
             type="button"
             disabled={audioFiles$.attribute((files) => files.length === 0)}
-            onClick={() => onTranscodeAll?.(formatRef.current?.value ?? "mp3")}
+            onClick={() => onTranscodeAll?.(formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT)}
           >
             Transcode all
           </button>
@@ -83,7 +90,7 @@ function SelectedFilesList({
                 <SelectedFileRow
                   file$={element$}
                   onTranscode={(f) =>
-                    onTranscodeFile?.(f, formatRef.current?.value ?? "mp3")
+                    onTranscodeFile?.(f, formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT)
                   }
                   onRemove={onRemoveFile}
                 />
