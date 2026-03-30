@@ -2,7 +2,17 @@ import { createRef, onMount } from "veles";
 import type { SelectedFile } from "./SelectedFileRow";
 
 const AUDIO_EXTENSIONS = new Set([
-  "flac", "mp3", "ogg", "wav", "aac", "m4a", "aiff", "aif", "opus", "wma", "ape",
+  "flac",
+  "mp3",
+  "ogg",
+  "wav",
+  "aac",
+  "m4a",
+  "aiff",
+  "aif",
+  "opus",
+  "wma",
+  "ape",
 ]);
 
 function getFileKind(filename: string): SelectedFile["kind"] {
@@ -54,10 +64,14 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     <section class="panel">
       <div class="panel-header">
         <h2>Upload</h2>
-        <p>You can upload either tracks or entire folders. To convert an entire album and to preserve extra files like artwork, include it in the uploaded files and download the result as a zip file.</p>
+        <p>
+          You can upload either tracks or entire folders. To convert an entire
+          album and to preserve extra files like the artwork, include it in the
+          uploaded files and download the result as a zip file.
+        </p>
       </div>
 
-      <div class="mode-row">
+      <div class="buttons">
         <button type="button" onClick={() => trackInputRef.current?.click()}>
           Select tracks
         </button>

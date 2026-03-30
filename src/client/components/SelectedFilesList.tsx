@@ -31,10 +31,10 @@ function SelectedFilesList({
     <section class="panel selection" aria-live="polite">
       <div class="selection-header">
         <h2>Selected files</h2>
-        <div class="selection-actions">
-          <label>
-            Format
-            <select ref={formatRef} value="mp3">
+        <div class="buttons">
+          <label class="format-label">
+            Format{" "}
+            <select name="format" ref={formatRef} value="mp3">
               <option value="mp3">MP3</option>
               <option value="ogg">OGG</option>
             </select>
@@ -99,14 +99,14 @@ function SelectedFilesList({
       >
         <h3>Extra files</h3>
         <ul class="selection-list">
-          {extraFiles$.renderEach({ key: "id" }, ({ elementState: element$ }) => {
-            return (
-              <SelectedFileRow
-                file$={element$}
-                onRemove={onRemoveFile}
-              />
-            );
-          })}
+          {extraFiles$.renderEach(
+            { key: "id" },
+            ({ elementState: element$ }) => {
+              return (
+                <SelectedFileRow file$={element$} onRemove={onRemoveFile} />
+              );
+            },
+          )}
         </ul>
       </div>
     </section>
