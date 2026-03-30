@@ -1,22 +1,24 @@
 import { zip } from "fflate";
-import type { SelectedFile } from "./components/SelectedFileRow";
-import type { JobStatus } from "./jobStatusStore";
+import type { SelectedFile } from "../components/SelectedFileRow";
+import type { JobStatus } from "../jobStatusStore";
 
 async function fetchAudioEntry(
   outputFilename: string,
-  jobId: string
+  jobId: string,
 ): Promise<{ name: string; data: Uint8Array }> {
   const response = await fetch(`/download/${outputFilename}?id=${jobId}`);
   const disposition = response.headers.get("Content-Disposition");
   const rfc5987 = disposition?.match(/filename\*=UTF-8''([^;]+)/)?.[1];
-  const name = rfc5987 ? decodeURIComponent(rfc5987) : (disposition?.match(/filename="([^"]+)"/)?.[1] ?? outputFilename);
+  const name = rfc5987
+    ? decodeURIComponent(rfc5987)
+    : (disposition?.match(/filename="([^"]+)"/)?.[1] ?? outputFilename);
   return { name, data: new Uint8Array(await response.arrayBuffer()) };
 }
 
 async function downloadZip(
   files: SelectedFile[],
   statusMap: Map<string, JobStatus>,
-  directoryName: string | null
+  directoryName: string | null,
 ): Promise<void> {
   const entries: Array<{ name: string; data: Uint8Array }> = [];
 
@@ -45,7 +47,9 @@ async function downloadZip(
         reject(err);
         return;
       }
-      const url = URL.createObjectURL(new Blob([data.buffer as ArrayBuffer], { type: "application/zip" }));
+      const url = URL.createObjectURL(
+        new Blob([data.buffer as ArrayBuffer], { type: "application/zip" }),
+      );
       const a = document.createElement("a");
       a.href = url;
       a.download = directoryName ? `${directoryName}.zip` : "transcoded.zip";

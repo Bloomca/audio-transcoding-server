@@ -1,5 +1,7 @@
-import type { State } from "veles";
 import { jobStatus$ } from "../jobStatusStore";
+import { ErrorMessage } from "./ErrorMessage";
+
+import type { State } from "veles";
 
 type SelectedFile = {
   id: string;
@@ -38,6 +40,16 @@ function SelectedFileRow({
     return entry?.status === "processing" ? entry.progress : null;
   });
 
+  const error$ = fileAndStatus$.map(([file, statusMap]) => {
+    if (!file.jobId) return null;
+    const entry = statusMap.get(file.jobId);
+    return entry?.status === "failed" ? entry.error : null;
+  });
+
+  function handleTranscode() {
+    onTranscode?.(file$.get());
+  }
+
   return (
     <li>
       <span>{label}</span>
@@ -52,7 +64,7 @@ function SelectedFileRow({
         <button
           type="button"
           disabled={file$.attribute((f) => !!f.jobId)}
-          onClick={() => onTranscode?.(file$.get())}
+          onClick={handleTranscode}
         >
           Transcode
         </button>
@@ -69,6 +81,8 @@ function SelectedFileRow({
       <button type="button" onClick={() => onRemove?.(file$.get())}>
         Remove
       </button>
+
+      <ErrorMessage error$={error$} onRetry={handleTranscode} />
     </li>
   );
 }

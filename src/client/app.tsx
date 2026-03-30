@@ -2,9 +2,10 @@ import { createState } from "veles";
 import { FilePicker } from "./components/FilePicker";
 import { SelectedFilesList } from "./components/SelectedFilesList";
 import type { SelectedFile } from "./components/SelectedFileRow";
-import { openSSE } from "./sseStream";
+import { openSSE } from "./utils/sseStream";
 import { jobStatus$ } from "./jobStatusStore";
-import { downloadZip } from "./createZip";
+import { downloadZip } from "./utils/createZip";
+import { canTranscodeFile, transcode } from "./utils/transcoding";
 
 function App() {
   const selectedFiles$ = createState<SelectedFile[]>([]);
@@ -25,14 +26,10 @@ function App() {
   }
 
   async function handleTranscodeFile(file: SelectedFile, format: string) {
-    if (file.kind !== "audio" || file.jobId) return;
-    const form = new FormData();
-    form.append("file", file.file);
-    form.append("outputFormat", format);
-    const response = await fetch("/transcode", { method: "POST", body: form });
-    const { id: jobId } = (await response.json()) as { id: string };
+    if (!canTranscodeFile(file)) return;
+    const jobId = await transcode(file.file, format);
     selectedFiles$.update((prev) =>
-      prev.map((f) => (f.id === file.id ? { ...f, jobId } : f))
+      prev.map((f) => (f.id === file.id ? { ...f, jobId } : f)),
     );
     openSSE();
   }
@@ -43,7 +40,7 @@ function App() {
       await downloadZip(
         selectedFiles$.get(),
         jobStatus$.get(),
-        directoryName$.get()
+        directoryName$.get(),
       );
     } finally {
       isZipping$.set(false);
@@ -67,7 +64,10 @@ function App() {
         </p>
       </section>
 
-      <FilePicker onPickTracks={handlePickTracks} onPickFolders={handlePickFolders} />
+      <FilePicker
+        onPickTracks={handlePickTracks}
+        onPickFolders={handlePickFolders}
+      />
       <SelectedFilesList
         files$={selectedFiles$}
         isZipping$={isZipping$}
