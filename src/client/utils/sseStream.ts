@@ -1,4 +1,4 @@
-import { jobStatus$, type JobStatus } from "./jobStatusStore";
+import { jobStatus$, type JobStatus } from "../jobStatusStore";
 
 type SSEEvent =
   | { jobId: string; status: "pending" }
