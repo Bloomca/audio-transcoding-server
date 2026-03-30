@@ -1,4 +1,4 @@
-import { jobStatusState, type JobStatus } from "./jobStatusStore";
+import { jobStatus$, type JobStatus } from "./jobStatusStore";
 
 type SSEEvent =
   | { jobId: string; status: "pending" }
@@ -13,7 +13,7 @@ function openSSE() {
   eventSource = new EventSource("/status/stream");
   eventSource.onmessage = (event: MessageEvent<string>) => {
     const data = JSON.parse(event.data) as SSEEvent;
-    jobStatusState.update((prev) => {
+    jobStatus$.update((prev) => {
       const next = new Map(prev);
       const { jobId, ...rest } = data;
       next.set(jobId, rest as JobStatus);

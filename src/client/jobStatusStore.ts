@@ -6,7 +6,7 @@ type JobStatus =
   | { status: "completed"; outputFilename: string }
   | { status: "failed"; error: string };
 
-const jobStatusState = createState<Map<string, JobStatus>>(new Map());
+const jobStatus$ = createState<Map<string, JobStatus>>(new Map());
 
-export { jobStatusState };
+export { jobStatus$ };
 export type { JobStatus };
