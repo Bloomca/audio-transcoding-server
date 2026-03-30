@@ -70,7 +70,9 @@ describe("GET /download/:filename", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.headers["content-disposition"]).toBe('attachment; filename="test.mp3"');
+    const contentDisposition = response.headers["content-disposition"];
+    expect(contentDisposition).toContain('attachment; filename="test.mp3"');
+    expect(contentDisposition).toContain("filename*=UTF-8''test.mp3");
     expect(response.headers["content-type"]).toBe("application/octet-stream");
     expect(response.rawPayload.length).toBeGreaterThan(0);
   }, 30_000);
