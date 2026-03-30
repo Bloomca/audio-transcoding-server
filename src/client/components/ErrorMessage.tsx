@@ -14,8 +14,13 @@ export function ErrorMessage({ error$, onRetry }: Props) {
 
   return error$.render((error) =>
     Boolean(error) ? (
-      <div>
-        <div>Something went wrong: {error}</div>
+      <div class="error-container">
+        <div
+          class="error-message"
+          title={error$.attribute((value) => `Error: ${value}`)}
+        >
+          Something went wrong
+        </div>
         <button
           disabled={retrying$.attribute()}
           onClick={(_e) => {

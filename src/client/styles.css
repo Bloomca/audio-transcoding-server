@@ -30,3 +30,35 @@ ul {
 .format-label select {
   padding: 3px;
 }
+
+.track-row-container {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(65, 23, 23, 0.3);
+}
+
+.track-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.track-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.error-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.error-message {
+  font-size: 0.85rem;
+  color: rgb(160 103 103);
+  font-weight: 700;
+  cursor: help;
+}
