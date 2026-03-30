@@ -1,0 +1,51 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      STORAGE_PATH: ${STORAGE_PATH:-/data/audio-transcoding}
+      PORT: 3000
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-100}
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+    volumes:
+      - transcoding_storage:/data/audio-transcoding
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      STORAGE_PATH: ${STORAGE_PATH:-/data/audio-transcoding}
+    volumes:
+      - transcoding_storage:/data/audio-transcoding
+
+volumes:
+  redis_data:
+  transcoding_storage:

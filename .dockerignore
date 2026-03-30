@@ -1,0 +1,17 @@
+# VCS
+.git
+.gitignore
+
+# Dependencies / build output
+node_modules
+dist
+
+# Local / secret env files
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Tests / fixtures / local artifacts
+fixtures
+*.log
