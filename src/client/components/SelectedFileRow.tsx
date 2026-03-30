@@ -51,38 +51,44 @@ function SelectedFileRow({
   }
 
   return (
-    <li>
-      <span>{label}</span>
-      {kind === "audio" && (
-        <progress
-          hidden={progress$.attribute((p) => p === null)}
-          value={progress$.attribute((p) => p ?? 0)}
-          max={100}
-        />
-      )}
-      {kind === "audio" && (
-        <button
-          type="button"
-          disabled={file$.attribute((f) => !!f.jobId)}
-          onClick={handleTranscode}
-        >
-          Transcode
-        </button>
-      )}
-      {kind === "audio" && (
-        <a
-          href={downloadUrl$.attribute((url) => url ?? "")}
-          hidden={downloadUrl$.attribute((url) => url === null)}
-          download
-        >
-          Download
-        </a>
-      )}
-      <button type="button" onClick={() => onRemove?.(file$.get())}>
-        Remove
-      </button>
+    <li class="track-row-container">
+      <div class="track-row">
+        <span>{label}</span>
 
-      <ErrorMessage error$={error$} onRetry={handleTranscode} />
+        <div class="track-actions">
+          {kind === "audio" && (
+            <progress
+              hidden={progress$.attribute((p) => p === null)}
+              value={progress$.attribute((p) => p ?? 0)}
+              max={100}
+            />
+          )}
+
+          <ErrorMessage error$={error$} onRetry={handleTranscode} />
+
+          {kind === "audio" && (
+            <button
+              type="button"
+              disabled={file$.attribute((f) => !!f.jobId)}
+              onClick={handleTranscode}
+            >
+              Transcode
+            </button>
+          )}
+          {kind === "audio" && (
+            <a
+              href={downloadUrl$.attribute((url) => url ?? "")}
+              hidden={downloadUrl$.attribute((url) => url === null)}
+              download
+            >
+              Download
+            </a>
+          )}
+          <button type="button" onClick={() => onRemove?.(file$.get())}>
+            Remove
+          </button>
+        </div>
+      </div>
     </li>
   );
 }
