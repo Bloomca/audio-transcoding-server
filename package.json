@@ -35,6 +35,6 @@
     "bullmq": "^5.71.0",
     "fastify": "^5.8.2",
     "fflate": "^0.8.2",
-    "veles": "^1.0.0-alpha.1"
+    "veles": "^1.0.0-alpha.2"
   }
 }

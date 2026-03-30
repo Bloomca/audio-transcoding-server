@@ -1,5 +1,5 @@
 import type { State } from "veles";
-import { jobStatusState } from "../jobStatusStore";
+import { jobStatus$ } from "../jobStatusStore";
 
 type SelectedFile = {
   id: string;
@@ -10,29 +10,29 @@ type SelectedFile = {
 };
 
 type SelectedFileRowProps = {
-  fileState: State<SelectedFile>;
+  file$: State<SelectedFile>;
   onTranscode?: (file: SelectedFile) => void;
   onRemove?: (file: SelectedFile) => void;
 };
 
 function SelectedFileRow({
-  fileState,
+  file$,
   onTranscode,
   onRemove,
 }: SelectedFileRowProps) {
   // kind and label never change after creation — read once
-  const { kind, label } = fileState.get();
+  const { kind, label } = file$.get();
 
-  const fileAndStatusState = fileState.combine(jobStatusState);
+  const fileAndStatus$ = file$.combine(jobStatus$);
 
-  const downloadUrlState = fileAndStatusState.map(([file, statusMap]) => {
+  const downloadUrl$ = fileAndStatus$.map(([file, statusMap]) => {
     if (!file.jobId) return null;
     const entry = statusMap.get(file.jobId);
     if (entry?.status !== "completed") return null;
     return `/download/${entry.outputFilename}?id=${file.jobId}`;
   });
 
-  const progress$ = fileAndStatusState.map(([file, statusMap]) => {
+  const progress$ = fileAndStatus$.map(([file, statusMap]) => {
     if (!file.jobId) return null;
     const entry = statusMap.get(file.jobId);
     return entry?.status === "processing" ? entry.progress : null;
@@ -51,22 +51,22 @@ function SelectedFileRow({
       {kind === "audio" && (
         <button
           type="button"
-          disabled={fileState.attribute((f) => !!f.jobId)}
-          onClick={() => onTranscode?.(fileState.get())}
+          disabled={file$.attribute((f) => !!f.jobId)}
+          onClick={() => onTranscode?.(file$.get())}
         >
           Transcode
         </button>
       )}
       {kind === "audio" && (
         <a
-          href={downloadUrlState.attribute((url) => url ?? "")}
-          hidden={downloadUrlState.attribute((url) => url === null)}
+          href={downloadUrl$.attribute((url) => url ?? "")}
+          hidden={downloadUrl$.attribute((url) => url === null)}
           download
         >
           Download
         </a>
       )}
-      <button type="button" onClick={() => onRemove?.(fileState.get())}>
+      <button type="button" onClick={() => onRemove?.(file$.get())}>
         Remove
       </button>
     </li>

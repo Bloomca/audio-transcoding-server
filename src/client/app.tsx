@@ -3,25 +3,25 @@ import { FilePicker } from "./components/FilePicker";
 import { SelectedFilesList } from "./components/SelectedFilesList";
 import type { SelectedFile } from "./components/SelectedFileRow";
 import { openSSE } from "./sseStream";
-import { jobStatusState } from "./jobStatusStore";
+import { jobStatus$ } from "./jobStatusStore";
 import { downloadZip } from "./createZip";
 
 function App() {
-  const selectedFilesState = createState<SelectedFile[]>([]);
-  const directoryNameState = createState<string | null>(null);
-  const isZippingState = createState(false);
+  const selectedFiles$ = createState<SelectedFile[]>([]);
+  const directoryName$ = createState<string | null>(null);
+  const isZipping$ = createState(false);
 
   function handlePickTracks(files: SelectedFile[]) {
-    selectedFilesState.update((prev) => [...prev, ...files]);
+    selectedFiles$.update((prev) => [...prev, ...files]);
   }
 
   function handlePickFolders(files: SelectedFile[], directoryName: string) {
-    directoryNameState.set(directoryName);
-    selectedFilesState.update((prev) => [...prev, ...files]);
+    directoryName$.set(directoryName);
+    selectedFiles$.update((prev) => [...prev, ...files]);
   }
 
   function handleRemoveFile(file: SelectedFile) {
-    selectedFilesState.update((prev) => prev.filter((f) => f.id !== file.id));
+    selectedFiles$.update((prev) => prev.filter((f) => f.id !== file.id));
   }
 
   async function handleTranscodeFile(file: SelectedFile, format: string) {
@@ -31,27 +31,27 @@ function App() {
     form.append("outputFormat", format);
     const response = await fetch("/transcode", { method: "POST", body: form });
     const { id: jobId } = (await response.json()) as { id: string };
-    selectedFilesState.update((prev) =>
+    selectedFiles$.update((prev) =>
       prev.map((f) => (f.id === file.id ? { ...f, jobId } : f))
     );
     openSSE();
   }
 
   async function handleDownloadAll() {
-    isZippingState.set(true);
+    isZipping$.set(true);
     try {
       await downloadZip(
-        selectedFilesState.get(),
-        jobStatusState.get(),
-        directoryNameState.get()
+        selectedFiles$.get(),
+        jobStatus$.get(),
+        directoryName$.get()
       );
     } finally {
-      isZippingState.set(false);
+      isZipping$.set(false);
     }
   }
 
   async function handleTranscodeAll(format: string) {
-    const files = selectedFilesState.get();
+    const files = selectedFiles$.get();
     for (const file of files) {
       await handleTranscodeFile(file, format);
     }
@@ -69,8 +69,8 @@ function App() {
 
       <FilePicker onPickTracks={handlePickTracks} onPickFolders={handlePickFolders} />
       <SelectedFilesList
-        filesState={selectedFilesState}
-        isZippingState={isZippingState}
+        files$={selectedFiles$}
+        isZipping$={isZipping$}
         onRemoveFile={handleRemoveFile}
         onTranscodeFile={handleTranscodeFile}
         onTranscodeAll={handleTranscodeAll}
