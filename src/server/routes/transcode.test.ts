@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import path from "node:path";
 import { access } from "node:fs/promises";
+import FormData from "form-data";
 import { buildApp } from "../app.js";
 import { config } from "../../shared/config.js";
 import { useQueue, buildForm, submitTranscodeRequest } from "../test-helpers.js";
@@ -44,6 +45,30 @@ describe("POST /transcode", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toEqual({ error: "No file provided" });
+  });
+
+  it("returns 400 when more than one file is provided", async () => {
+    const app = buildApp();
+    const form = new FormData();
+    form.append("file", Buffer.from("first"), {
+      filename: "first.flac",
+      contentType: "audio/flac",
+    });
+    form.append("file", Buffer.from("second"), {
+      filename: "second.flac",
+      contentType: "audio/flac",
+    });
+    form.append("outputFormat", "mp3");
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/transcode",
+      payload: form,
+      headers: form.getHeaders(),
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({ error: "Only one file is allowed" });
   });
 
   it("returns 400 when outputFormat is not provided", async () => {
