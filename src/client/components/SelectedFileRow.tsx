@@ -41,6 +41,15 @@ function SelectedFileRow({
     return null;
   });
 
+  const progressClass$ = fileAndStatus$.map(([file, statusMap]) => {
+    const entry = statusMap.get(file.id);
+    if (entry?.status === "uploading") {
+      return "track-progress track-progress--uploading";
+    }
+
+    return "track-progress";
+  });
+
   const error$ = fileAndStatus$.map(([file, statusMap]) => {
     const entry = statusMap.get(file.id);
     return entry?.status === "failed" ? entry.error : null;
@@ -65,6 +74,7 @@ function SelectedFileRow({
         <div class="track-actions">
           {kind === "audio" && (
             <progress
+              class={progressClass$.attribute()}
               hidden={progress$.attribute((p) => p === null)}
               value={progress$.attribute((p) => p ?? 0)}
               max={100}
