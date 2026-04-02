@@ -44,7 +44,13 @@ export function createAppVM() {
     });
 
     try {
-      const jobId = await transcode(file.file, format);
+      const jobId = await transcode(file.file, format, (progress) => {
+        jobStatus$.update((prev) => {
+          const next = new Map(prev);
+          next.set(file.id, { status: "uploading", progress });
+          return next;
+        });
+      });
       jobStatus$.update((prev) => {
         const next = new Map(prev);
         next.set(file.id, { status: "pending", jobId });

@@ -11,7 +11,11 @@ export function canTranscodeFile(file: SelectedFile): boolean {
   return entry.status === "failed";
 }
 
-export async function transcode(file: File, format: string) {
+export async function transcode(
+  file: File,
+  format: string,
+  onUploadProgress?: (progress: number) => void,
+) {
   const form = new FormData();
   form.append("file", file);
   form.append("outputFormat", format);
@@ -21,6 +25,12 @@ export async function transcode(file: File, format: string) {
   return new Promise<string>((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.open("POST", "/transcode");
+
+    request.upload.onprogress = (event) => {
+      if (!event.lengthComputable || event.total === 0) return;
+      const progress = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      onUploadProgress?.(progress);
+    };
 
     request.onload = () => {
       let body: { id?: string; error?: string } = {};
@@ -38,6 +48,7 @@ export async function transcode(file: File, format: string) {
       }
 
       if (request.status >= 200 && request.status < 300 && body.id) {
+        onUploadProgress?.(100);
         resolve(body.id);
         return;
       }
