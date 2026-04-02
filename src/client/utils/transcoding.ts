@@ -16,12 +16,38 @@ export async function transcode(file: File, format: string) {
   form.append("file", file);
   form.append("outputFormat", format);
 
-  const response = await fetch("/transcode", { method: "POST", body: form });
-  const body = (await response.json()) as { id?: string; error?: string };
+  // due to potentially big file uploads, we need to track the
+  // progress, and it is possible only while using XHR
+  return new Promise<string>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("POST", "/transcode");
 
-  if (!response.ok || !body.id) {
-    throw new Error(body.error ?? "Failed to submit transcode request");
-  }
+    request.onload = () => {
+      let body: { id?: string; error?: string } = {};
 
-  return body.id;
+      try {
+        body = request.responseText
+          ? (JSON.parse(request.responseText) as {
+              id?: string;
+              error?: string;
+            })
+          : {};
+      } catch {
+        reject(new Error("Invalid server response"));
+        return;
+      }
+
+      if (request.status >= 200 && request.status < 300 && body.id) {
+        resolve(body.id);
+        return;
+      }
+
+      reject(new Error(body.error ?? "Failed to submit transcode request"));
+    };
+
+    request.onerror = () => reject(new Error("Network error"));
+    request.onabort = () => reject(new Error("Request aborted"));
+
+    request.send(form);
+  });
 }

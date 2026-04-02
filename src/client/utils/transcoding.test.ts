@@ -44,31 +44,51 @@ describe("client/utils/transcoding", () => {
   });
 
   it("transcode sends multipart request and returns job id", async () => {
-    const fetchMock = vi.fn(
-      async (_input: RequestInfo | URL, _init?: RequestInit) =>
-        new Response(JSON.stringify({ id: "job-123" }), {
-          headers: { "Content-Type": "application/json" },
-        }),
+    const requests: Array<{
+      method?: string;
+      url?: string;
+      body?: Document | XMLHttpRequestBodyInit | null;
+    }> = [];
+
+    class MockXMLHttpRequest {
+      status = 200;
+      responseText = JSON.stringify({ id: "job-123" });
+      method: string | undefined;
+      url: string | undefined;
+      onload: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+      onerror: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+      onabort: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+
+      open(method: string, url: string) {
+        this.method = method;
+        this.url = url;
+      }
+
+      send(body?: Document | XMLHttpRequestBodyInit | null) {
+        requests.push({ method: this.method, url: this.url, body: body ?? null });
+        this.onload?.call(
+          this as unknown as XMLHttpRequest,
+          {} as ProgressEvent<EventTarget>,
+        );
+      }
+    }
+
+    vi.stubGlobal(
+      "XMLHttpRequest",
+      MockXMLHttpRequest as unknown as typeof XMLHttpRequest,
     );
-    vi.stubGlobal("fetch", fetchMock);
 
     const file = new File(["content"], "album.flac", { type: "audio/flac" });
     const jobId = await transcode(file, "ogg");
 
     expect(jobId).toBe("job-123");
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(requests).toHaveLength(1);
 
-    const firstCall = fetchMock.mock.calls[0];
-    if (!firstCall) throw new Error("fetch was not called");
+    const [request] = requests;
+    expect(request?.url).toBe("/transcode");
+    expect(request?.method).toBe("POST");
 
-    const [url, init] = firstCall;
-
-    expect(url).toBe("/transcode");
-    expect(init?.method).toBe("POST");
-
-    if (!init) throw new Error("Request init is missing");
-
-    const body = init.body as FormData;
+    const body = request?.body as FormData;
     expect(body).toBeInstanceOf(FormData);
     expect(body.get("outputFormat")).toBe("ogg");
 
