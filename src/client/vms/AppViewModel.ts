@@ -1,11 +1,9 @@
 import { createState } from "veles";
-import { FilePicker } from "./components/FilePicker";
-import { SelectedFilesList } from "./components/SelectedFilesList";
-import type { SelectedFile } from "./components/SelectedFileRow";
-import { openSSE } from "./utils/sseStream";
-import { jobStatus$ } from "./jobStatusStore";
-import { downloadZip } from "./utils/createZip";
-import { canTranscodeFile, transcode } from "./utils/transcoding";
+import type { SelectedFile } from "../components/SelectedFileRow";
+import { openSSE } from "../utils/sseStream";
+import { jobStatus$ } from "../jobStatusStore";
+import { downloadZip } from "../utils/createZip";
+import { canTranscodeFile, transcode } from "../utils/transcoding";
 
 function mergeFilesById(
   prev: SelectedFile[],
@@ -18,7 +16,7 @@ function mergeFilesById(
   return Array.from(merged.values());
 }
 
-function App() {
+export function createAppVM() {
   const selectedFiles$ = createState<SelectedFile[]>([]);
   const directoryName$ = createState<string | null>(null);
   const isZipping$ = createState(false);
@@ -86,30 +84,14 @@ function App() {
     }
   }
 
-  return (
-    <main class="shell">
-      <section class="hero">
-        <p class="eyebrow"></p>
-        <h1>Audio Transcoding Server</h1>
-        <p class="lede">
-          Upload tracks in any common format and transcode to some other format.
-        </p>
-      </section>
-
-      <FilePicker
-        onPickTracks={handlePickTracks}
-        onPickFolders={handlePickFolders}
-      />
-      <SelectedFilesList
-        files$={selectedFiles$}
-        isZipping$={isZipping$}
-        onRemoveFile={handleRemoveFile}
-        onTranscodeFile={handleTranscodeFile}
-        onTranscodeAll={handleTranscodeAll}
-        onDownloadAll={handleDownloadAll}
-      />
-    </main>
-  );
+  return {
+    handlePickTracks,
+    handlePickFolders,
+    handleRemoveFile,
+    handleTranscodeAll,
+    handleTranscodeFile,
+    handleDownloadAll,
+    selectedFiles$,
+    isZipping$,
+  };
 }
-
-export { App };

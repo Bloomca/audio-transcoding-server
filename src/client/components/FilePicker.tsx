@@ -1,25 +1,6 @@
 import { createRef, onMount } from "veles";
-import { createStableFileId } from "../utils/fileId";
 import type { SelectedFile } from "./SelectedFileRow";
-
-const AUDIO_EXTENSIONS = new Set([
-  "flac",
-  "mp3",
-  "ogg",
-  "wav",
-  "aac",
-  "m4a",
-  "aiff",
-  "aif",
-  "opus",
-  "wma",
-  "ape",
-]);
-
-function getFileKind(filename: string): SelectedFile["kind"] {
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  return AUDIO_EXTENSIONS.has(ext) ? "audio" : "extra";
-}
+import { createFilePickerVM } from '../vms/FilePickerViewModel'
 
 type FilePickerProps = {
   onPickTracks?: (files: SelectedFile[]) => void;
@@ -34,46 +15,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     folderInputRef.current?.setAttribute("webkitdirectory", "");
   });
 
-  async function handleTrackChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-
-    const files = await Promise.all(
-      Array.from(input.files).map(async (file) => {
-        const label = file.name;
-        return {
-          id: await createStableFileId(file, label),
-          label,
-          kind: getFileKind(file.name),
-          file,
-        } as SelectedFile;
-      }),
-    );
-
-    onPickTracks?.(files);
-    input.value = "";
-  }
-
-  async function handleFolderChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    const directoryName = input.files[0].webkitRelativePath.split("/")[0];
-
-    const files = await Promise.all(
-      Array.from(input.files).map(async (file) => {
-        const label = file.webkitRelativePath.slice(directoryName.length + 1);
-        return {
-          id: await createStableFileId(file, label),
-          label,
-          kind: getFileKind(file.name),
-          file,
-        } as SelectedFile;
-      }),
-    );
-
-    onPickFolders?.(files, directoryName);
-    input.value = "";
-  }
+  const vm = createFilePickerVM(onPickTracks, onPickFolders)
 
   return (
     <section class="panel">
@@ -100,13 +42,13 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
         type="file"
         multiple={true}
         style="display: none"
-        onChange={handleTrackChange}
+        onChange={vm.handleTrackChange}
       />
       <input
         ref={folderInputRef}
         type="file"
         style="display: none"
-        onChange={handleFolderChange}
+        onChange={vm.handleFolderChange}
       />
     </section>
   );

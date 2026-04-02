@@ -1,5 +1,5 @@
 import { attachComponent, createElement } from "veles";
-import { App } from "./app";
+import { App } from "./components/App";
 import "./styles.css";
 
 const root = document.getElementById("app");
