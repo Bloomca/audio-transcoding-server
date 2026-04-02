@@ -9,7 +9,6 @@ type SelectedFile = {
   label: string;
   kind: "audio" | "extra";
   file: File;
-  jobId?: string;
 };
 
 type SelectedFileRowProps = {

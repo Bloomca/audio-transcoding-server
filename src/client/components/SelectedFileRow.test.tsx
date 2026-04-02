@@ -12,7 +12,6 @@ function createSelectedFile(overrides: Partial<SelectedFile> = {}): SelectedFile
     label: "track.flac",
     kind: "audio",
     file: new File(["audio"], "track.flac", { type: "audio/flac" }),
-    jobId: "job-1",
     ...overrides,
   };
 }
