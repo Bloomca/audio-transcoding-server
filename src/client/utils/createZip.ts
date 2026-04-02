@@ -1,6 +1,7 @@
 import { zip } from "fflate";
 import type { SelectedFile } from "../components/SelectedFileRow";
 import type { JobStatus } from "../jobStatusStore";
+import type { FileId } from "./fileId";
 
 async function fetchAudioEntry(
   outputFilename: string,
@@ -17,16 +18,16 @@ async function fetchAudioEntry(
 
 async function downloadZip(
   files: SelectedFile[],
-  statusMap: Map<string, JobStatus>,
+  statusMap: Map<FileId, JobStatus>,
   directoryName: string | null,
 ): Promise<void> {
   const entries: Array<{ name: string; data: Uint8Array }> = [];
 
   for (const file of files) {
-    if (file.kind === "audio" && file.jobId) {
-      const status = statusMap.get(file.jobId);
+    if (file.kind === "audio") {
+      const status = statusMap.get(file.id);
       if (status?.status === "completed") {
-        entries.push(await fetchAudioEntry(status.outputFilename, file.jobId));
+        entries.push(await fetchAudioEntry(status.outputFilename, status.jobId));
       }
     } else if (file.kind === "extra") {
       entries.push({

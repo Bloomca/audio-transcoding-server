@@ -1,12 +1,14 @@
 import { createState } from "veles";
+import type { FileId } from "./utils/fileId";
 
 type JobStatus =
-  | { status: "pending" }
-  | { status: "processing"; progress: number }
-  | { status: "completed"; outputFilename: string }
-  | { status: "failed"; error: string };
+  | { status: "uploading"; progress: number }
+  | { status: "pending"; jobId: string }
+  | { status: "processing"; jobId: string; progress: number }
+  | { status: "completed"; jobId: string; outputFilename: string }
+  | { status: "failed"; error: string; jobId?: string };
 
-const jobStatus$ = createState<Map<string, JobStatus>>(new Map());
+const jobStatus$ = createState<Map<FileId, JobStatus>>(new Map());
 
 export { jobStatus$ };
 export type { JobStatus };
