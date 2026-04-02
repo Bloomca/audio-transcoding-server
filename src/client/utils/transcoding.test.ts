@@ -55,6 +55,12 @@ describe("client/utils/transcoding", () => {
       responseText = JSON.stringify({ id: "job-123" });
       method: string | undefined;
       url: string | undefined;
+      upload = {
+        onprogress:
+          null as
+            | ((this: XMLHttpRequestUpload, ev: ProgressEvent<EventTarget>) => unknown)
+            | null,
+      };
       onload: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
       onerror: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
       onabort: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
@@ -66,6 +72,11 @@ describe("client/utils/transcoding", () => {
 
       send(body?: Document | XMLHttpRequestBodyInit | null) {
         requests.push({ method: this.method, url: this.url, body: body ?? null });
+        this.upload.onprogress?.call(this as unknown as XMLHttpRequestUpload, {
+          lengthComputable: true,
+          loaded: 5,
+          total: 10,
+        } as ProgressEvent<EventTarget>);
         this.onload?.call(
           this as unknown as XMLHttpRequest,
           {} as ProgressEvent<EventTarget>,
@@ -78,8 +89,9 @@ describe("client/utils/transcoding", () => {
       MockXMLHttpRequest as unknown as typeof XMLHttpRequest,
     );
 
+    const onProgress = vi.fn();
     const file = new File(["content"], "album.flac", { type: "audio/flac" });
-    const jobId = await transcode(file, "ogg");
+    const jobId = await transcode(file, "ogg", onProgress);
 
     expect(jobId).toBe("job-123");
     expect(requests).toHaveLength(1);
@@ -95,5 +107,7 @@ describe("client/utils/transcoding", () => {
     const uploadedFile = body.get("file");
     expect(uploadedFile).toBeInstanceOf(File);
     expect((uploadedFile as File).name).toBe("album.flac");
+    expect(onProgress).toHaveBeenCalledWith(50);
+    expect(onProgress).toHaveBeenCalledWith(100);
   });
 });
