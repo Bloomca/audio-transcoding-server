@@ -45,9 +45,6 @@ export function createAppVM() {
 
     try {
       const jobId = await transcode(file.file, format);
-      selectedFiles$.update((prev) =>
-        prev.map((f) => (f.id === file.id ? { ...f, jobId } : f)),
-      );
       jobStatus$.update((prev) => {
         const next = new Map(prev);
         next.set(file.id, { status: "pending", jobId });

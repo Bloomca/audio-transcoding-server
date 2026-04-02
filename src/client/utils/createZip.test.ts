@@ -78,11 +78,10 @@ describe("client/utils/createZip", () => {
     } as unknown as File;
 
     const files: SelectedFile[] = [
-      createSelectedFile({ id: asFileId("audio-1"), jobId: "job-1" }),
+      createSelectedFile({ id: asFileId("audio-1") }),
       createSelectedFile({
         id: asFileId("audio-2"),
         label: "broken.flac",
-        jobId: "job-2",
         file: new File(["audio"], "broken.flac", { type: "audio/flac" }),
       }),
       createSelectedFile({
