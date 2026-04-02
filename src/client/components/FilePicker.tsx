@@ -1,4 +1,5 @@
 import { createRef, onMount } from "veles";
+import { createStableFileId } from "../utils/fileId";
 import type { SelectedFile } from "./SelectedFileRow";
 
 const AUDIO_EXTENSIONS = new Set([
@@ -33,29 +34,43 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     folderInputRef.current?.setAttribute("webkitdirectory", "");
   });
 
-  function handleTrackChange(event: Event) {
+  async function handleTrackChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
-    const files: SelectedFile[] = Array.from(input.files).map((file) => ({
-      id: crypto.randomUUID(),
-      label: file.name,
-      kind: getFileKind(file.name),
-      file,
-    }));
+
+    const files = await Promise.all(
+      Array.from(input.files).map(async (file) => {
+        const label = file.name;
+        return {
+          id: await createStableFileId(file, label),
+          label,
+          kind: getFileKind(file.name),
+          file,
+        } as SelectedFile;
+      }),
+    );
+
     onPickTracks?.(files);
     input.value = "";
   }
 
-  function handleFolderChange(event: Event) {
+  async function handleFolderChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
     const directoryName = input.files[0].webkitRelativePath.split("/")[0];
-    const files: SelectedFile[] = Array.from(input.files).map((file) => ({
-      id: crypto.randomUUID(),
-      label: file.webkitRelativePath.slice(directoryName.length + 1),
-      kind: getFileKind(file.name),
-      file,
-    }));
+
+    const files = await Promise.all(
+      Array.from(input.files).map(async (file) => {
+        const label = file.webkitRelativePath.slice(directoryName.length + 1);
+        return {
+          id: await createStableFileId(file, label),
+          label,
+          kind: getFileKind(file.name),
+          file,
+        } as SelectedFile;
+      }),
+    );
+
     onPickFolders?.(files, directoryName);
     input.value = "";
   }

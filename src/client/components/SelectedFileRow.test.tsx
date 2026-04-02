@@ -3,11 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { attachComponent, createElement, createState } from "veles";
 import { jobStatus$ } from "../jobStatusStore";
+import { asFileId } from "../utils/fileId";
 import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
 
 function createSelectedFile(overrides: Partial<SelectedFile> = {}): SelectedFile {
   return {
-    id: "file-1",
+    id: asFileId("file-1"),
     label: "track.flac",
     kind: "audio",
     file: new File(["audio"], "track.flac", { type: "audio/flac" }),
@@ -46,7 +47,9 @@ describe("client/components/SelectedFileRow", () => {
       }),
     });
 
-    jobStatus$.set(new Map([["job-1", { status: "processing", progress: 42 }]]));
+    jobStatus$.set(
+      new Map([[asFileId("file-1"), { status: "processing", jobId: "job-1", progress: 42 }]]),
+    );
     await flushUi();
 
     const progressEl = root.querySelector("progress") as HTMLProgressElement;
@@ -56,7 +59,7 @@ describe("client/components/SelectedFileRow", () => {
     expect(root.querySelector(".error-message")).toBeNull();
 
     jobStatus$.set(
-      new Map([["job-1", { status: "failed", error: "transcoding failed" }]]),
+      new Map([[asFileId("file-1"), { status: "failed", jobId: "job-1", error: "transcoding failed" }]]),
     );
     await flushUi();
 

@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SelectedFile } from "../components/SelectedFileRow";
 import type { JobStatus } from "../jobStatusStore";
+import { asFileId, type FileId } from "./fileId";
 
 const { zipMock } = vi.hoisted(() => ({
   zipMock: vi.fn(),
@@ -16,7 +17,7 @@ import { downloadZip } from "./createZip";
 
 function createSelectedFile(overrides: Partial<SelectedFile> = {}): SelectedFile {
   return {
-    id: "file-1",
+    id: asFileId("file-1"),
     label: "track.flac",
     kind: "audio",
     file: new File(["audio"], "track.flac", { type: "audio/flac" }),
@@ -77,24 +78,27 @@ describe("client/utils/createZip", () => {
     } as unknown as File;
 
     const files: SelectedFile[] = [
-      createSelectedFile({ id: "audio-1", jobId: "job-1" }),
+      createSelectedFile({ id: asFileId("audio-1"), jobId: "job-1" }),
       createSelectedFile({
-        id: "audio-2",
+        id: asFileId("audio-2"),
         label: "broken.flac",
         jobId: "job-2",
         file: new File(["audio"], "broken.flac", { type: "audio/flac" }),
       }),
       createSelectedFile({
-        id: "extra-1",
+        id: asFileId("extra-1"),
         kind: "extra",
         label: "cover.jpg",
         file: extraFile,
       }),
     ];
 
-    const statusMap = new Map<string, JobStatus>([
-      ["job-1", { status: "completed", outputFilename: "track-output.mp3" }],
-      ["job-2", { status: "failed", error: "failed" }],
+    const statusMap = new Map<FileId, JobStatus>([
+      [
+        asFileId("audio-1"),
+        { status: "completed", jobId: "job-1", outputFilename: "track-output.mp3" },
+      ],
+      [asFileId("audio-2"), { status: "failed", jobId: "job-2", error: "failed" }],
     ]);
 
     await downloadZip(files, statusMap, "My Album");
@@ -110,8 +114,9 @@ describe("client/utils/createZip", () => {
     expect(zipInput["Track é.mp3"][0]).toBeInstanceOf(Uint8Array);
     expect(zipInput["cover.jpg"][0]).toBeInstanceOf(Uint8Array);
 
-    expect(createdAnchor).not.toBeNull();
-    expect(createdAnchor?.download).toBe("My Album.zip");
+    const anchor = createdAnchor as HTMLAnchorElement | null;
+    expect(anchor).not.toBeNull();
+    expect((anchor as HTMLAnchorElement).download).toBe("My Album.zip");
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:test-url");

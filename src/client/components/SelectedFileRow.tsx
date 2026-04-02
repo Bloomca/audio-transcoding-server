@@ -2,9 +2,10 @@ import { jobStatus$ } from "../jobStatusStore";
 import { ErrorMessage } from "./ErrorMessage";
 
 import type { State } from "veles";
+import type { FileId } from "../utils/fileId";
 
 type SelectedFile = {
-  id: string;
+  id: FileId;
   label: string;
   kind: "audio" | "extra";
   file: File;
@@ -28,22 +29,29 @@ function SelectedFileRow({
   const fileAndStatus$ = file$.combine(jobStatus$);
 
   const downloadUrl$ = fileAndStatus$.map(([file, statusMap]) => {
-    if (!file.jobId) return null;
-    const entry = statusMap.get(file.jobId);
+    const entry = statusMap.get(file.id);
     if (entry?.status !== "completed") return null;
-    return `/download/${entry.outputFilename}?id=${file.jobId}`;
+    return `/download/${entry.outputFilename}?id=${entry.jobId}`;
   });
 
   const progress$ = fileAndStatus$.map(([file, statusMap]) => {
-    if (!file.jobId) return null;
-    const entry = statusMap.get(file.jobId);
-    return entry?.status === "processing" ? entry.progress : null;
+    const entry = statusMap.get(file.id);
+    if (!entry) return null;
+    if (entry.status === "uploading") return entry.progress;
+    if (entry.status === "processing") return entry.progress;
+    return null;
   });
 
   const error$ = fileAndStatus$.map(([file, statusMap]) => {
-    if (!file.jobId) return null;
-    const entry = statusMap.get(file.jobId);
+    const entry = statusMap.get(file.id);
     return entry?.status === "failed" ? entry.error : null;
+  });
+
+  const transcodeDisabled$ = fileAndStatus$.map(([file, statusMap]) => {
+    if (file.kind !== "audio") return true;
+    const entry = statusMap.get(file.id);
+    if (!entry) return false;
+    return entry.status !== "failed";
   });
 
   function handleTranscode() {
@@ -69,7 +77,7 @@ function SelectedFileRow({
           {kind === "audio" && (
             <button
               type="button"
-              disabled={file$.attribute((f) => !!f.jobId)}
+              disabled={transcodeDisabled$.attribute()}
               onClick={handleTranscode}
             >
               Transcode
