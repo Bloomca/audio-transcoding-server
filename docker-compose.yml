@@ -30,6 +30,9 @@ services:
       - "${HOST_PORT:-3000}:3000"
     volumes:
       - transcoding_storage:/data/audio-transcoding
+    networks:
+      - default
+      - observability
 
   worker:
     build:
@@ -45,7 +48,15 @@ services:
       STORAGE_PATH: ${STORAGE_PATH:-/data/audio-transcoding}
     volumes:
       - transcoding_storage:/data/audio-transcoding
+    networks:
+      - default
+      - observability
 
 volumes:
   redis_data:
   transcoding_storage:
+
+networks:
+  observability:
+    external: true
+    name: observability
