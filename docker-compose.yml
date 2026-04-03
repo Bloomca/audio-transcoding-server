@@ -46,6 +46,7 @@ services:
     environment:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       STORAGE_PATH: ${STORAGE_PATH:-/data/audio-transcoding}
+      WORKER_METRICS_PORT: 3001
     volumes:
       - transcoding_storage:/data/audio-transcoding
     networks:
