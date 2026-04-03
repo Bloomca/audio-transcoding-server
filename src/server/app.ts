@@ -6,10 +6,12 @@ import { statusRoute } from "./routes/status.js";
 import { streamRoute } from "./routes/stream.js";
 import { downloadRoute } from "./routes/download.js";
 import { config } from "../shared/config.js";
+import { registerMetrics } from "./metrics.js";
 
 export function buildApp() {
   const app = Fastify({ logger: true });
   app.register(multipart, { limits: { fileSize: config.maxFileSizeBytes } });
+  registerMetrics(app);
   app.register(clientRoute);
   app.register(transcodeRoute);
   app.register(statusRoute);
