@@ -1,7 +1,8 @@
 import { FilePicker } from "./FilePicker";
 import { SelectedFilesList } from "./SelectedFilesList";
+import { RetryAfterWarning } from "./RetryAfterWarning";
 
-import { createAppVM } from '../vms/AppViewModel'
+import { createAppVM } from "../vms/AppViewModel";
 
 function App() {
   const vm = createAppVM();
@@ -15,6 +16,8 @@ function App() {
           Upload tracks in any common format and transcode to some other format.
         </p>
       </section>
+
+      <RetryAfterWarning retryAfterSecs$={vm.retryAfterSecs$} />
 
       <FilePicker
         onPickTracks={vm.handlePickTracks}

@@ -56,6 +56,17 @@ ul {
   opacity: 0.5;
 }
 
+.warning-label {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid rgb(179 117 30);
+  background: rgb(255 241 214);
+  color: rgb(112 68 7);
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+}
+
 .error-container {
   display: flex;
   gap: 8px;

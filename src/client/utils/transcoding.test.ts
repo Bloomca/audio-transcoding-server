@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { canTranscodeFile, transcode } from "./transcoding";
+import {
+  canTranscodeFile,
+  transcode,
+  TranscodeRequestError,
+} from "./transcoding";
 import { jobStatus$ } from "../jobStatusStore";
 import type { SelectedFile } from "../components/SelectedFileRow";
 import { asFileId } from "./fileId";
@@ -109,5 +113,48 @@ describe("client/utils/transcoding", () => {
     expect((uploadedFile as File).name).toBe("album.flac");
     expect(onProgress).toHaveBeenCalledWith(50);
     expect(onProgress).toHaveBeenCalledWith(100);
+  });
+
+  it("transcode returns retry metadata for rate-limited responses", async () => {
+    class MockXMLHttpRequest {
+      status = 429;
+      responseText = JSON.stringify({ error: "Too many requests" });
+      upload = {
+        onprogress:
+          null as
+            | ((this: XMLHttpRequestUpload, ev: ProgressEvent<EventTarget>) => unknown)
+            | null,
+      };
+      onload: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+      onerror: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+      onabort: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+
+      open() {}
+
+      getResponseHeader(name: string) {
+        return name.toLowerCase() === "retry-after" ? "60" : null;
+      }
+
+      send() {
+        this.onload?.call(
+          this as unknown as XMLHttpRequest,
+          {} as ProgressEvent<EventTarget>,
+        );
+      }
+    }
+
+    vi.stubGlobal(
+      "XMLHttpRequest",
+      MockXMLHttpRequest as unknown as typeof XMLHttpRequest,
+    );
+
+    const file = new File(["content"], "album.flac", { type: "audio/flac" });
+
+    await expect(transcode(file, "mp3")).rejects.toMatchObject({
+      name: "TranscodeRequestError",
+      statusCode: 429,
+      retryAfterSecs: 60,
+      message: "Too many requests",
+    } satisfies Partial<TranscodeRequestError>);
   });
 });
