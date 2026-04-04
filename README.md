@@ -20,6 +20,8 @@ This app has 3 parts:
 - server application to receive transcoding request
 - worker which performs transcoding jobs by calling [ffmpeg](https://www.ffmpeg.org/)
 
+You can read more about the application in [the docs](./docs).
+
 ### Client-side app
 
 Web application is written using [Veles](https://github.com/Bloomca/veles).
