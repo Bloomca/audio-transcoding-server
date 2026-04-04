@@ -6,5 +6,11 @@ export const config = {
   storagePath:
     process.env.STORAGE_PATH ?? path.join(os.tmpdir(), "audio-transcoding"),
   port: parseInt(process.env.PORT ?? "3000", 10),
-  maxFileSizeBytes: parseInt(process.env.MAX_FILE_SIZE_MB ?? "100", 10) * 1024 * 1024,
+  maxFileSizeBytes:
+    parseInt(process.env.MAX_FILE_SIZE_MB ?? "100", 10) * 1024 * 1024,
+  maxQueueDepth: parseInt(process.env.MAX_QUEUE_DEPTH ?? "30", 10),
+  queueBusyRetryAfterSecs: parseInt(
+    process.env.QUEUE_BUSY_RETRY_AFTER_SECS ?? "60",
+    10,
+  ),
 };
