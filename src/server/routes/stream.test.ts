@@ -12,6 +12,11 @@ import { TRANSCODE_QUEUE } from "../../shared/queue.js";
 import { processTranscodeJob } from "../../worker/processor.js";
 import type { TranscodeJobData, TranscodeJobResult } from "../../shared/jobs.js";
 import { useQueue, buildForm } from "../test-helpers.js";
+import {
+  addJobToSession,
+  getOrCreateSession,
+  getSessionJobs,
+} from "../session-store.js";
 
 const FIXTURES_DIR = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -177,6 +182,19 @@ describe("GET /status/stream", () => {
 
     const jobIds = [event1?.jobId, event2?.jobId];
     expect(jobIds).toContain(jobId2);
+
+    close();
+  });
+
+  it("prunes stale session job ids that no longer exist in the queue", async () => {
+    const { sessionId } = getOrCreateSession(undefined);
+    const staleJobId = "stale-job-id";
+    addJobToSession(sessionId, staleJobId);
+
+    const { readEvent, close } = await openStream(`sessionId=${sessionId}`);
+    await readEvent(250);
+
+    expect(getSessionJobs(sessionId)?.has(staleJobId)).toBe(false);
 
     close();
   });
