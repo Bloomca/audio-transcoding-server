@@ -32,9 +32,13 @@ export async function streamRoute(app: FastifyInstance) {
     }
 
     // Snapshot: send current state of all jobs already in the session
-    for (const jobId of sessionJobs) {
+    // and prune stale IDs that no longer exist in BullMQ.
+    for (const jobId of [...sessionJobs]) {
       const job = await queue.getJob(jobId);
-      if (!job) continue;
+      if (!job) {
+        sessionJobs.delete(jobId);
+        continue;
+      }
 
       const state = await job.getState();
 
