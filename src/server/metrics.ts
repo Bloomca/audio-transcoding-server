@@ -54,8 +54,12 @@ export function registerMetrics(app: FastifyInstance) {
     done();
   });
 
-  app.get("/metrics", async (_request, reply) => {
-    reply.header("Content-Type", registry.contentType);
-    return registry.metrics();
-  });
+  app.get(
+    "/metrics",
+    { config: { rateLimit: false } },
+    async (_request, reply) => {
+      reply.header("Content-Type", registry.contentType);
+      return registry.metrics();
+    },
+  );
 }
