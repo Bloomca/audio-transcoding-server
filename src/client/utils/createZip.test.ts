@@ -100,7 +100,7 @@ describe("client/utils/createZip", () => {
       [asFileId("audio-2"), { status: "failed", jobId: "job-2", error: "failed" }],
     ]);
 
-    await downloadZip(files, statusMap, "My Album");
+    await downloadZip(files, statusMap, "My Album", "mp3");
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith("/download/track-output.mp3?id=job-1");
@@ -115,7 +115,7 @@ describe("client/utils/createZip", () => {
 
     const anchor = createdAnchor as HTMLAnchorElement | null;
     expect(anchor).not.toBeNull();
-    expect((anchor as HTMLAnchorElement).download).toBe("My Album.zip");
+    expect((anchor as HTMLAnchorElement).download).toBe("My Album (mp3).zip");
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:test-url");

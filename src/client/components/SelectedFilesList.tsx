@@ -10,7 +10,7 @@ const OUTPUT_FORMAT_OPTIONS = Object.entries(FORMAT_CONFIG) as Array<
 type SelectedFilesListProps = {
   files$: State<SelectedFile[]>;
   isZipping$: State<boolean>;
-  onDownloadAll?: () => void;
+  onDownloadAll?: (format: string) => void;
   onTranscodeFile?: (file: SelectedFile, format: string) => void;
   onTranscodeAll?: (format: string) => void;
   onRemoveFile?: (file: SelectedFile) => void;
@@ -60,7 +60,9 @@ function SelectedFilesList({
               .attribute(
                 ([files, isZipping]) => files.length === 0 || isZipping,
               )}
-            onClick={onDownloadAll}
+            onClick={() =>
+              onDownloadAll?.(formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT)
+            }
           >
             Download ZIP
           </button>
