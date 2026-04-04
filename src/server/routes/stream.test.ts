@@ -68,7 +68,7 @@ function openStream(cookie?: string): Promise<StreamHandle> {
         const event = dataLine
           ? (JSON.parse(dataLine.slice(6)) as Record<string, unknown>)
           : null;
-        pending.shift()!(event);
+        pending.shift()?.(event);
       }
     }
 
@@ -185,7 +185,10 @@ describe("GET /status/stream", () => {
 
   it("sends snapshot for multiple jobs in the session", async () => {
     const { newCookie } = await submitJob();
-    const sessionCookie = newCookie!;
+    expect(newCookie).toBeDefined();
+    if (!newCookie) throw new Error("Expected session cookie");
+
+    const sessionCookie = newCookie;
     const { jobId: jobId2 } = await submitJob(sessionCookie);
 
     const { readEvent, close } = await openStream(sessionCookie);

@@ -28,28 +28,29 @@ export function createAppVM() {
 
   let retryCountdownInterval: ReturnType<typeof setInterval> | null = null;
 
+  function stopRetryCountdown() {
+    if (retryCountdownInterval === null) return;
+    clearInterval(retryCountdownInterval);
+    retryCountdownInterval = null;
+  }
+
   function startRetryCountdown(durationSecs: number) {
     const clamped = Math.max(1, Math.ceil(durationSecs));
 
-    if (retryCountdownInterval) {
-      clearInterval(retryCountdownInterval);
-      retryCountdownInterval = null;
-    }
+    stopRetryCountdown();
 
     retryAfterSecs$.set(clamped);
 
     retryCountdownInterval = setInterval(() => {
       const current = retryAfterSecs$.get();
       if (current === null) {
-        clearInterval(retryCountdownInterval!);
-        retryCountdownInterval = null;
+        stopRetryCountdown();
         return;
       }
 
       if (current <= 1) {
         retryAfterSecs$.set(null);
-        clearInterval(retryCountdownInterval!);
-        retryCountdownInterval = null;
+        stopRetryCountdown();
         return;
       }
 
