@@ -17,6 +17,10 @@ import {
   getSessionJobs,
   sessionCookie,
 } from "../session-store.js";
+import {
+  isQueueAtCapacity,
+  countSessionInFlightJobs,
+} from "./transcode-queue-guards.js";
 
 const queue = createTranscodeQueue();
 
@@ -42,13 +46,6 @@ async function removeUploadedFile(savedFilename: string) {
   );
 }
 
-async function isQueueAtCapacity() {
-  const counts = await queue.getJobCounts("waiting", "active", "delayed");
-  const depth = counts.waiting + counts.active + counts.delayed;
-
-  return depth >= config.maxQueueDepth;
-}
-
 type ReplyLike = {
   header: (name: string, value: string) => unknown;
   code: (statusCode: number) => { send: (payload: unknown) => unknown };
@@ -66,32 +63,9 @@ function replySessionBusy(reply: ReplyLike) {
     .send({ error: "Too many in-flight requests in this session" });
 }
 
-async function countSessionInFlightJobs(sessionJobs: Set<string>) {
-  const jobIds = [...sessionJobs];
-  let inFlightJobs = 0;
-
-  for (const jobId of jobIds) {
-    const job = await queue.getJob(jobId);
-    if (!job) {
-      sessionJobs.delete(jobId);
-      continue;
-    }
-
-    const state = await job.getState();
-    if (state === "completed" || state === "failed") {
-      sessionJobs.delete(jobId);
-      continue;
-    }
-
-    inFlightJobs += 1;
-  }
-
-  return inFlightJobs;
-}
-
 export async function transcodeRoute(app: FastifyInstance) {
   app.post("/transcode", async (request, reply) => {
-    if (await isQueueAtCapacity()) {
+    if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
       return replyQueueBusy(reply);
     }
 
@@ -148,13 +122,13 @@ export async function transcodeRoute(app: FastifyInstance) {
     const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
     const sessionJobs = getSessionJobs(sessionId)!;
 
-    const inFlightJobs = await countSessionInFlightJobs(sessionJobs);
+    const inFlightJobs = await countSessionInFlightJobs(queue, sessionJobs);
     if (inFlightJobs >= config.maxInFlightJobsPerSession) {
       await removeUploadedFile(savedFilename);
       return replySessionBusy(reply);
     }
 
-    if (await isQueueAtCapacity()) {
+    if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
       await removeUploadedFile(savedFilename);
       return replyQueueBusy(reply);
     }
