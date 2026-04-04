@@ -13,4 +13,12 @@ export const config = {
     process.env.QUEUE_BUSY_RETRY_AFTER_SECS ?? "60",
     10,
   ),
+  maxInFlightJobsPerSession: parseInt(
+    process.env.MAX_IN_FLIGHT_JOBS_PER_SESSION ?? "20",
+    10,
+  ),
+  sessionLimitRetryAfterSecs: parseInt(
+    process.env.SESSION_LIMIT_RETRY_AFTER_SECS ?? "60",
+    10,
+  ),
 };

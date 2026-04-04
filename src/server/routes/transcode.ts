@@ -14,6 +14,7 @@ import {
 import {
   getOrCreateSession,
   addJobToSession,
+  getSessionJobs,
   sessionCookie,
 } from "../session-store.js";
 
@@ -48,12 +49,44 @@ async function isQueueAtCapacity() {
   return depth >= config.maxQueueDepth;
 }
 
-function replyQueueBusy(reply: {
+type ReplyLike = {
   header: (name: string, value: string) => unknown;
   code: (statusCode: number) => { send: (payload: unknown) => unknown };
-}) {
+};
+
+function replyQueueBusy(reply: ReplyLike) {
   reply.header("Retry-After", String(config.queueBusyRetryAfterSecs));
   return reply.code(503).send({ error: "Server is busy, retry later" });
+}
+
+function replySessionBusy(reply: ReplyLike) {
+  reply.header("Retry-After", String(config.sessionLimitRetryAfterSecs));
+  return reply
+    .code(429)
+    .send({ error: "Too many in-flight requests in this session" });
+}
+
+async function countSessionInFlightJobs(sessionJobs: Set<string>) {
+  const jobIds = [...sessionJobs];
+  let inFlightJobs = 0;
+
+  for (const jobId of jobIds) {
+    const job = await queue.getJob(jobId);
+    if (!job) {
+      sessionJobs.delete(jobId);
+      continue;
+    }
+
+    const state = await job.getState();
+    if (state === "completed" || state === "failed") {
+      sessionJobs.delete(jobId);
+      continue;
+    }
+
+    inFlightJobs += 1;
+  }
+
+  return inFlightJobs;
 }
 
 export async function transcodeRoute(app: FastifyInstance) {
@@ -112,6 +145,15 @@ export async function transcodeRoute(app: FastifyInstance) {
       });
     }
 
+    const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
+    const sessionJobs = getSessionJobs(sessionId)!;
+
+    const inFlightJobs = await countSessionInFlightJobs(sessionJobs);
+    if (inFlightJobs >= config.maxInFlightJobsPerSession) {
+      await removeUploadedFile(savedFilename);
+      return replySessionBusy(reply);
+    }
+
     if (await isQueueAtCapacity()) {
       await removeUploadedFile(savedFilename);
       return replyQueueBusy(reply);
@@ -123,7 +165,6 @@ export async function transcodeRoute(app: FastifyInstance) {
       outputFormat,
     );
 
-    const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
     addJobToSession(sessionId, jobId);
     if (isNew) {
       reply.header("Set-Cookie", sessionCookie(sessionId));
