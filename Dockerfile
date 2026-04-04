@@ -13,7 +13,7 @@ RUN npm run build
 FROM node:24-bookworm-slim AS prod-deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 FROM node:24-bookworm-slim AS server
 WORKDIR /app
