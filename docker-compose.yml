@@ -26,6 +26,8 @@ services:
       STORAGE_PATH: ${STORAGE_PATH:-/data/audio-transcoding}
       PORT: 3000
       MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-100}
+      MAX_QUEUE_DEPTH: ${MAX_QUEUE_DEPTH:-30}
+      QUEUE_BUSY_RETRY_AFTER_SECS: ${QUEUE_BUSY_RETRY_AFTER_SECS:-60}
     ports:
       - "${HOST_PORT:-3000}:3000"
     volumes:

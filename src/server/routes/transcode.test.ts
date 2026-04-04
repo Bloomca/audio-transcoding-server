@@ -100,4 +100,38 @@ describe("POST /transcode", () => {
     expect(response.statusCode).toBe(400);
     expect(response.json().error).toContain("Unsupported output format");
   });
+
+  it("returns 503 when queue is at capacity", async () => {
+    await Promise.all(
+      Array.from({ length: config.maxQueueDepth }, (_, index) => {
+        const jobId = `queued-${index}`;
+        return queue.add(
+          "transcode",
+          {
+            jobId,
+            savedFilename: `${jobId}.flac`,
+            originalFilename: `${jobId}.flac`,
+            outputFormat: "mp3",
+          },
+          { jobId },
+        );
+      }),
+    );
+
+    const app = buildApp();
+    const form = buildForm({ outputFormat: "mp3" });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/transcode",
+      payload: form,
+      headers: form.getHeaders(),
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.headers["retry-after"]).toBe(
+      String(config.queueBusyRetryAfterSecs),
+    );
+    expect(response.json()).toEqual({ error: "Server is busy, retry later" });
+  });
 });

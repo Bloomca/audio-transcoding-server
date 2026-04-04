@@ -41,8 +41,27 @@ async function removeUploadedFile(savedFilename: string) {
   );
 }
 
+async function isQueueAtCapacity() {
+  const counts = await queue.getJobCounts("waiting", "active", "delayed");
+  const depth = counts.waiting + counts.active + counts.delayed;
+
+  return depth >= config.maxQueueDepth;
+}
+
+function replyQueueBusy(reply: {
+  header: (name: string, value: string) => unknown;
+  code: (statusCode: number) => { send: (payload: unknown) => unknown };
+}) {
+  reply.header("Retry-After", String(config.queueBusyRetryAfterSecs));
+  return reply.code(503).send({ error: "Server is busy, retry later" });
+}
+
 export async function transcodeRoute(app: FastifyInstance) {
   app.post("/transcode", async (request, reply) => {
+    if (await isQueueAtCapacity()) {
+      return replyQueueBusy(reply);
+    }
+
     await mkdir(config.storagePath, { recursive: true });
 
     let uploadedFile:
@@ -91,6 +110,11 @@ export async function transcodeRoute(app: FastifyInstance) {
       return reply.code(400).send({
         error: `Unsupported output format. Supported formats: ${SUPPORTED_FORMATS.join(", ")}`,
       });
+    }
+
+    if (await isQueueAtCapacity()) {
+      await removeUploadedFile(savedFilename);
+      return replyQueueBusy(reply);
     }
 
     const jobId = await handleTranscodeRequest(
