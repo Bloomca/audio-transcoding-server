@@ -22,6 +22,9 @@ describe("POST /transcode", () => {
     expect(job?.data.outputFormat).toBe("mp3");
     expect(job?.data.originalFilename).toBe("test.flac");
     expect(job?.data.savedFilename).toMatch(/^[\w-]+\.flac$/);
+    expect(job?.opts.removeOnComplete).toMatchObject({
+      age: config.storageFileTtlSeconds,
+    });
   });
 
   it("saves the file to storage", async () => {

@@ -35,6 +35,8 @@ export const config = {
     10,
   ),
   storageFileTtlHours: parseInt(process.env.STORAGE_FILE_TTL_HOURS ?? "5", 10),
+  storageFileTtlSeconds:
+    parseInt(process.env.STORAGE_FILE_TTL_HOURS ?? "5", 10) * 60 * 60,
   storageCleanupIntervalMinutes: parseInt(
     process.env.STORAGE_CLEANUP_INTERVAL_MINUTES ?? "15",
     10,
