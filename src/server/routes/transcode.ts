@@ -133,7 +133,11 @@ export async function transcodeRoute(app: FastifyInstance) {
       }
 
       const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
-      const sessionJobs = getSessionJobs(sessionId)!;
+      const sessionJobs = getSessionJobs(sessionId);
+      if (!sessionJobs) {
+        await removeUploadedFile(savedFilename);
+        return reply.code(500).send({ error: "Failed to initialize session" });
+      }
 
       const inFlightJobs = await countSessionInFlightJobs(queue, sessionJobs);
       if (inFlightJobs >= config.maxInFlightJobsPerSession) {

@@ -35,8 +35,10 @@ describe("POST /transcode", () => {
     const { id } = await submitTranscodeRequest();
 
     const job = await queue.getJob(id);
-    const filePath = path.join(config.storagePath, job!.data.savedFilename);
+    expect(job).toBeDefined();
+    if (!job) throw new Error("Expected queued job to exist");
 
+    const filePath = path.join(config.storagePath, job.data.savedFilename);
     await expect(access(filePath)).resolves.toBeUndefined();
   });
 
