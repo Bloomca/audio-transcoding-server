@@ -34,4 +34,9 @@ export const config = {
     process.env.TRANSCODE_RATE_LIMIT_TIME_WINDOW_MS ?? "60000",
     10,
   ),
+  storageFileTtlHours: parseInt(process.env.STORAGE_FILE_TTL_HOURS ?? "5", 10),
+  storageCleanupIntervalMinutes: parseInt(
+    process.env.STORAGE_CLEANUP_INTERVAL_MINUTES ?? "15",
+    10,
+  ),
 };
