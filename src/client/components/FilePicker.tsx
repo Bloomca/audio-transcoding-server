@@ -22,7 +22,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
       <div class="panel-header">
         <h2>Upload</h2>
         <p>
-          You can upload either tracks or entire folders. To convert an entire
+          You can upload either tracks or an entire folder. To convert an entire
           album and to preserve extra files like the artwork, include it in the
           uploaded files and download the result as a zip file.
         </p>
