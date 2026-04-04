@@ -15,7 +15,9 @@ vi.mock("fflate", () => ({
 
 import { downloadZip } from "./createZip";
 
-function createSelectedFile(overrides: Partial<SelectedFile> = {}): SelectedFile {
+function createSelectedFile(
+  overrides: Partial<SelectedFile> = {},
+): SelectedFile {
   return {
     id: asFileId("file-1"),
     label: "track.flac",
@@ -61,13 +63,15 @@ describe("client/utils/createZip", () => {
 
     const createElementOriginal = document.createElement.bind(document);
     let createdAnchor: HTMLAnchorElement | null = null;
-    vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      const element = createElementOriginal(tagName);
-      if (tagName === "a") {
-        createdAnchor = element as HTMLAnchorElement;
-      }
-      return element;
-    });
+    vi.spyOn(document, "createElement").mockImplementation(
+      (tagName: string) => {
+        const element = createElementOriginal(tagName);
+        if (tagName === "a") {
+          createdAnchor = element as HTMLAnchorElement;
+        }
+        return element;
+      },
+    );
 
     const clickSpy = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
@@ -95,15 +99,24 @@ describe("client/utils/createZip", () => {
     const statusMap = new Map<FileId, JobStatus>([
       [
         asFileId("audio-1"),
-        { status: "completed", jobId: "job-1", outputFilename: "track-output.mp3" },
+        {
+          status: "completed",
+          jobId: "job-1",
+          outputFilename: "track-output.mp3",
+        },
       ],
-      [asFileId("audio-2"), { status: "failed", jobId: "job-2", error: "failed" }],
+      [
+        asFileId("audio-2"),
+        { status: "failed", jobId: "job-2", error: "failed" },
+      ],
     ]);
 
     await downloadZip(files, statusMap, "My Album", "mp3");
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith("/download/track-output.mp3?id=job-1");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/download/track-output.mp3?id=job-1",
+    );
 
     expect(zipMock).toHaveBeenCalledTimes(1);
     const [zipInput] = zipMock.mock.calls[0] as [

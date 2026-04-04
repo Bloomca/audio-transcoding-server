@@ -33,22 +33,19 @@ const CODEC_ARGS: Record<OutputFormat, string[]> = {
     "-map_metadata",
     "0",
   ],
-  alac: [
-    "-codec:a",
-    "alac",
-    "-map_metadata",
-    "0",
-    "-movflags",
-    "+faststart",
-  ],
+  alac: ["-codec:a", "alac", "-map_metadata", "0", "-movflags", "+faststart"],
   flac: ["-codec:a", "flac", "-compression_level", "12", "-map_metadata", "0"],
 };
 
-export async function probe(inputPath: string): Promise<{ durationSecs: number }> {
+export async function probe(
+  inputPath: string,
+): Promise<{ durationSecs: number }> {
   return new Promise((resolve, reject) => {
     const proc = spawn("ffprobe", [
-      "-v", "quiet",
-      "-print_format", "json",
+      "-v",
+      "quiet",
+      "-print_format",
+      "json",
       "-show_format",
       inputPath,
     ]);
@@ -86,9 +83,11 @@ export async function transcode({
 
   return new Promise((resolve, reject) => {
     const proc = spawn("ffmpeg", [
-      "-i", inputPath,
+      "-i",
+      inputPath,
       ...CODEC_ARGS[outputFormat],
-      "-progress", "pipe:1",
+      "-progress",
+      "pipe:1",
       "-nostats",
       outputPath,
     ]);
@@ -103,7 +102,10 @@ export async function transcode({
         const match = line.match(/^out_time_us=(\d+)$/);
         if (match) {
           const outTimeSecs = parseInt(match[1], 10) / 1_000_000;
-          const percent = Math.min(100, Math.round((outTimeSecs / durationSecs) * 100));
+          const percent = Math.min(
+            100,
+            Math.round((outTimeSecs / durationSecs) * 100),
+          );
           onProgress(percent);
         }
       }

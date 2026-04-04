@@ -35,5 +35,8 @@ export function isSupportedFormat(format: string): format is OutputFormat {
 
 export const FORMAT_EXTENSIONS: Record<OutputFormat, string> =
   Object.fromEntries(
-    Object.entries(FORMAT_CONFIG).map(([format, config]) => [format, config.extension]),
+    Object.entries(FORMAT_CONFIG).map(([format, config]) => [
+      format,
+      config.extension,
+    ]),
   ) as Record<OutputFormat, string>;

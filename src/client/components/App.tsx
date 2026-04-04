@@ -1,8 +1,7 @@
-import { FilePicker } from "./FilePicker";
-import { SelectedFilesList } from "./SelectedFilesList";
-import { RetryAfterWarning } from "./RetryAfterWarning";
-
 import { createAppVM } from "../vms/AppViewModel";
+import { FilePicker } from "./FilePicker";
+import { RetryAfterWarning } from "./RetryAfterWarning";
+import { SelectedFilesList } from "./SelectedFilesList";
 
 function App() {
   const vm = createAppVM();
@@ -13,7 +12,9 @@ function App() {
         <p class="eyebrow"></p>
         <h1>Audio Transcoding Server</h1>
         <p class="lede">
-          This is a free service to convert your audio files in pretty much any format to a selection of other formats. The files will be available only to you and will be deleted after about 5 hours.
+          This is a free service to convert your audio files in pretty much any
+          format to a selection of other formats. The files will be available
+          only to you and will be deleted after about 5 hours.
         </p>
       </section>
 

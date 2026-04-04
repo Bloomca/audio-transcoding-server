@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { attachComponent, createElement, createState } from "veles";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { jobStatus$ } from "../jobStatusStore";
 import { asFileId } from "../utils/fileId";
-import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
+import { type SelectedFile, SelectedFileRow } from "./SelectedFileRow";
 
-function createSelectedFile(overrides: Partial<SelectedFile> = {}): SelectedFile {
+function createSelectedFile(
+  overrides: Partial<SelectedFile> = {},
+): SelectedFile {
   return {
     id: asFileId("file-1"),
     label: "track.flac",
@@ -47,7 +49,12 @@ describe("client/components/SelectedFileRow", () => {
     });
 
     jobStatus$.set(
-      new Map([[asFileId("file-1"), { status: "processing", jobId: "job-1", progress: 42 }]]),
+      new Map([
+        [
+          asFileId("file-1"),
+          { status: "processing", jobId: "job-1", progress: 42 },
+        ],
+      ]),
     );
     await flushUi();
 
@@ -58,16 +65,25 @@ describe("client/components/SelectedFileRow", () => {
     expect(root.querySelector(".error-message")).toBeNull();
 
     jobStatus$.set(
-      new Map([[asFileId("file-1"), { status: "failed", jobId: "job-1", error: "transcoding failed" }]]),
+      new Map([
+        [
+          asFileId("file-1"),
+          { status: "failed", jobId: "job-1", error: "transcoding failed" },
+        ],
+      ]),
     );
     await flushUi();
 
-    const updatedProgress = root.querySelector("progress") as HTMLProgressElement;
+    const updatedProgress = root.querySelector(
+      "progress",
+    ) as HTMLProgressElement;
     const errorMessage = root.querySelector(".error-message") as HTMLElement;
 
     expect(updatedProgress.hidden).toBe(true);
     expect(errorMessage).not.toBeNull();
     expect(errorMessage.textContent).toContain("Something went wrong");
-    expect(errorMessage.getAttribute("title")).toBe("Error: transcoding failed");
+    expect(errorMessage.getAttribute("title")).toBe(
+      "Error: transcoding failed",
+    );
   });
 });

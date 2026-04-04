@@ -40,7 +40,8 @@ app.listen({ port: config.port, host: "0.0.0.0" }, (err) => {
   }
 
   const ttlMs = Math.max(1, config.storageFileTtlHours) * 60 * 60 * 1000;
-  const intervalMs = Math.max(1, config.storageCleanupIntervalMinutes) * 60 * 1000;
+  const intervalMs =
+    Math.max(1, config.storageCleanupIntervalMinutes) * 60 * 1000;
 
   stopStorageCleanup = startStorageCleanupScheduler({
     storagePath: config.storagePath,

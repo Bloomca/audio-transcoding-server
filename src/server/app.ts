@@ -1,13 +1,13 @@
-import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
-import { clientRoute } from "./routes/client.js";
-import { transcodeRoute } from "./routes/transcode.js";
-import { statusRoute } from "./routes/status.js";
-import { streamRoute } from "./routes/stream.js";
-import { downloadRoute } from "./routes/download.js";
+import Fastify from "fastify";
 import { config } from "../shared/config.js";
 import { registerMetrics } from "./metrics.js";
+import { clientRoute } from "./routes/client.js";
+import { downloadRoute } from "./routes/download.js";
+import { statusRoute } from "./routes/status.js";
+import { streamRoute } from "./routes/stream.js";
+import { transcodeRoute } from "./routes/transcode.js";
 
 export function buildApp() {
   const isTestEnv =

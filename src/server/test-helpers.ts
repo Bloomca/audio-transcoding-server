@@ -1,7 +1,7 @@
-import { beforeAll, afterEach, afterAll } from "vitest";
 import FormData from "form-data";
-import { buildApp } from "./app.js";
+import { afterAll, afterEach, beforeAll } from "vitest";
 import { createTranscodeQueue } from "../shared/queue.js";
+import { buildApp } from "./app.js";
 
 export function useQueue() {
   const queue = createTranscodeQueue();
@@ -13,7 +13,9 @@ export function useQueue() {
   return queue;
 }
 
-export function buildForm(options: { file?: boolean; outputFormat?: string } = {}) {
+export function buildForm(
+  options: { file?: boolean; outputFormat?: string } = {},
+) {
   const form = new FormData();
   if (options.file !== false) {
     form.append("file", Buffer.from("fake audio content"), {
@@ -27,7 +29,9 @@ export function buildForm(options: { file?: boolean; outputFormat?: string } = {
   return form;
 }
 
-export async function submitTranscodeRequest(options: { outputFormat?: string } = {}) {
+export async function submitTranscodeRequest(
+  options: { outputFormat?: string } = {},
+) {
   const app = buildApp();
   const form = buildForm({ outputFormat: options.outputFormat ?? "mp3" });
 

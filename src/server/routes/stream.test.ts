@@ -1,26 +1,29 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { readFile } from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
-import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import FormData from "form-data";
 import { Worker } from "bullmq";
 import type { FastifyInstance } from "fastify";
-import { buildApp } from "../app.js";
+import FormData from "form-data";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { config } from "../../shared/config.js";
+import type {
+  TranscodeJobData,
+  TranscodeJobResult,
+} from "../../shared/jobs.js";
 import { TRANSCODE_QUEUE } from "../../shared/queue.js";
 import { processTranscodeJob } from "../../worker/processor.js";
-import type { TranscodeJobData, TranscodeJobResult } from "../../shared/jobs.js";
-import { useQueue, buildForm } from "../test-helpers.js";
+import { buildApp } from "../app.js";
 import {
   addJobToSession,
   getOrCreateSession,
   getSessionJobs,
 } from "../session-store.js";
+import { buildForm, useQueue } from "../test-helpers.js";
 
 const FIXTURES_DIR = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../fixtures"
+  "../../../fixtures",
 );
 
 useQueue();
@@ -31,7 +34,7 @@ let port: number;
 const worker = new Worker<TranscodeJobData, TranscodeJobResult>(
   TRANSCODE_QUEUE,
   processTranscodeJob,
-  { connection: { url: config.redisUrl } }
+  { connection: { url: config.redisUrl } },
 );
 
 beforeAll(async () => {
@@ -62,7 +65,9 @@ function openStream(cookie?: string): Promise<StreamHandle> {
         const raw = buffer.slice(0, boundary);
         buffer = buffer.slice(boundary + 2);
         const dataLine = raw.split("\n").find((l) => l.startsWith("data: "));
-        const event = dataLine ? (JSON.parse(dataLine.slice(6)) as Record<string, unknown>) : null;
+        const event = dataLine
+          ? (JSON.parse(dataLine.slice(6)) as Record<string, unknown>)
+          : null;
         pending.shift()!(event);
       }
     }
@@ -96,7 +101,7 @@ function openStream(cookie?: string): Promise<StreamHandle> {
             }),
           close: () => req.destroy(),
         });
-      }
+      },
     );
 
     req.on("error", (err) => {
@@ -122,7 +127,10 @@ async function submitJob(cookie?: string) {
 async function submitRealJob(cookie?: string) {
   const fileBuffer = await readFile(path.join(FIXTURES_DIR, "test.flac"));
   const form = new FormData();
-  form.append("file", fileBuffer, { filename: "test.flac", contentType: "audio/flac" });
+  form.append("file", fileBuffer, {
+    filename: "test.flac",
+    contentType: "audio/flac",
+  });
   form.append("outputFormat", "mp3");
 
   const response = await app.inject({
@@ -144,14 +152,18 @@ describe("GET /status/stream", () => {
     expect(headers["content-type"]).toBe("text/event-stream");
     expect(headers["cache-control"]).toBe("no-cache");
     expect(headers["set-cookie"]).toBeDefined();
-    expect((headers["set-cookie"] as string[])[0]).toMatch(/^sessionId=.+; HttpOnly/);
+    expect((headers["set-cookie"] as string[])[0]).toMatch(
+      /^sessionId=.+; HttpOnly/,
+    );
 
     close();
   });
 
   it("does not set a new cookie when reconnecting with an existing session", async () => {
     const first = await openStream();
-    const sessionCookie = (first.headers["set-cookie"] as string[])[0].split(";")[0];
+    const sessionCookie = (first.headers["set-cookie"] as string[])[0].split(
+      ";",
+    )[0];
     first.close();
 
     const second = await openStream(sessionCookie);
@@ -201,7 +213,9 @@ describe("GET /status/stream", () => {
 
   it("streams progress and completed events for a running job", async () => {
     const initial = await openStream();
-    const sessionCookie = (initial.headers["set-cookie"] as string[])[0].split(";")[0];
+    const sessionCookie = (initial.headers["set-cookie"] as string[])[0].split(
+      ";",
+    )[0];
     initial.close();
 
     const { jobId } = await submitRealJob(sessionCookie);

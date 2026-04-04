@@ -28,7 +28,9 @@ async function downloadZip(
     if (file.kind === "audio") {
       const status = statusMap.get(file.id);
       if (status?.status === "completed") {
-        entries.push(await fetchAudioEntry(status.outputFilename, status.jobId));
+        entries.push(
+          await fetchAudioEntry(status.outputFilename, status.jobId),
+        );
       }
     } else if (file.kind === "extra") {
       entries.push({

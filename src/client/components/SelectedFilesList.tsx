@@ -1,6 +1,6 @@
 import { createRef, type State } from "veles";
 import { FORMAT_CONFIG, type OutputFormat } from "../../shared/formats.js";
-import { SelectedFileRow, type SelectedFile } from "./SelectedFileRow";
+import { type SelectedFile, SelectedFileRow } from "./SelectedFileRow";
 
 const DEFAULT_OUTPUT_FORMAT: OutputFormat = "mp3";
 const OUTPUT_FORMAT_OPTIONS = Object.entries(FORMAT_CONFIG) as Array<
@@ -49,7 +49,11 @@ function SelectedFilesList({
           <button
             type="button"
             disabled={audioFiles$.attribute((files) => files.length === 0)}
-            onClick={() => onTranscodeAll?.(formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT)}
+            onClick={() =>
+              onTranscodeAll?.(
+                formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT,
+              )
+            }
           >
             Transcode all
           </button>
@@ -92,7 +96,10 @@ function SelectedFilesList({
                 <SelectedFileRow
                   file$={element$}
                   onTranscode={(f) =>
-                    onTranscodeFile?.(f, formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT)
+                    onTranscodeFile?.(
+                      f,
+                      formatRef.current?.value ?? DEFAULT_OUTPUT_FORMAT,
+                    )
                   }
                   onRemove={onRemoveFile}
                 />

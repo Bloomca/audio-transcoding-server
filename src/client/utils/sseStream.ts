@@ -1,4 +1,4 @@
-import { jobStatus$, type JobStatus } from "../jobStatusStore";
+import { type JobStatus, jobStatus$ } from "../jobStatusStore";
 import type { FileId } from "./fileId";
 
 type SSEEvent =

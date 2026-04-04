@@ -13,7 +13,7 @@ export function ErrorMessage({ error$, onRetry }: Props) {
   });
 
   return error$.render((error) =>
-    Boolean(error) ? (
+    error ? (
       <div class="error-container">
         <div
           class="error-message"
@@ -22,6 +22,7 @@ export function ErrorMessage({ error$, onRetry }: Props) {
           Something went wrong
         </div>
         <button
+          type="button"
           disabled={retrying$.attribute()}
           onClick={(_e) => {
             retrying$.set(true);

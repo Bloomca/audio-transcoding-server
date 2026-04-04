@@ -1,12 +1,12 @@
 import { createState } from "veles";
 import type { SelectedFile } from "../components/SelectedFileRow";
-import { openSSE } from "../utils/sseStream";
 import { jobStatus$ } from "../jobStatusStore";
 import { downloadZip } from "../utils/createZip";
+import { openSSE } from "../utils/sseStream";
 import {
   canTranscodeFile,
-  transcode,
   TranscodeRequestError,
+  transcode,
 } from "../utils/transcoding";
 
 function mergeFilesById(

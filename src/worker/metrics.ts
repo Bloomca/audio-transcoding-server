@@ -1,6 +1,11 @@
 import { createServer } from "node:http";
 import type { Worker } from "bullmq";
-import { collectDefaultMetrics, Counter, Histogram, Registry } from "prom-client";
+import {
+  Counter,
+  collectDefaultMetrics,
+  Histogram,
+  Registry,
+} from "prom-client";
 import type { TranscodeJobData, TranscodeJobResult } from "../shared/jobs.js";
 
 const metricsRegistry = new Registry();
@@ -43,17 +48,23 @@ function getJobKey(job: WorkerJobLike) {
   return String(job.id ?? job.data.jobId);
 }
 
-function observeJobDuration(job: WorkerJobLike, status: "completed" | "failed") {
+function observeJobDuration(
+  job: WorkerJobLike,
+  status: "completed" | "failed",
+) {
   const key = getJobKey(job);
   const startedAt = jobStartTimes.get(key);
   if (!startedAt) return;
 
-  const durationSeconds = Number(process.hrtime.bigint() - startedAt) / 1_000_000_000;
+  const durationSeconds =
+    Number(process.hrtime.bigint() - startedAt) / 1_000_000_000;
   jobDurationSeconds.observe({ status }, durationSeconds);
   jobStartTimes.delete(key);
 }
 
-export function attachWorkerMetrics(worker: Worker<TranscodeJobData, TranscodeJobResult>) {
+export function attachWorkerMetrics(
+  worker: Worker<TranscodeJobData, TranscodeJobResult>,
+) {
   worker.on("active", (job) => {
     jobsStartedTotal.inc();
     jobStartTimes.set(getJobKey(job), process.hrtime.bigint());

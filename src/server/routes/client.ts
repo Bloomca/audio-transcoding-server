@@ -1,18 +1,22 @@
-import fastifyStatic from "@fastify/static";
-import path from "node:path";
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
+import fastifyStatic from "@fastify/static";
 import type { FastifyInstance } from "fastify";
 
 const routesDir = path.dirname(fileURLToPath(import.meta.url));
 const sourceClientDir = path.resolve(routesDir, "../../client");
 const builtClientDir = path.resolve(routesDir, "../../../dist/client");
-const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL ?? "http://localhost:5173";
+const viteDevServerUrl =
+  process.env.VITE_DEV_SERVER_URL ?? "http://localhost:5173";
 
 async function sendClientFile(
-  reply: { type: (value: string) => typeof reply; send: (value: string) => unknown },
+  reply: {
+    type: (value: string) => typeof reply;
+    send: (value: string) => unknown;
+  },
   rootDir: string,
-  filename: string
+  filename: string,
 ) {
   const filePath = path.join(rootDir, filename);
   const content = await readFile(filePath, "utf8");

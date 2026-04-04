@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildApp } from "../app.js";
-import { useQueue, submitTranscodeRequest } from "../test-helpers.js";
+import { submitTranscodeRequest, useQueue } from "../test-helpers.js";
 
 useQueue();
 

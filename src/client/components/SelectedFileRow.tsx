@@ -1,8 +1,7 @@
-import { jobStatus$ } from "../jobStatusStore";
-import { ErrorMessage } from "./ErrorMessage";
-
 import type { State } from "veles";
+import { jobStatus$ } from "../jobStatusStore";
 import type { FileId } from "../utils/fileId";
+import { ErrorMessage } from "./ErrorMessage";
 
 type SelectedFile = {
   id: FileId;
@@ -110,5 +109,5 @@ function SelectedFileRow({
   );
 }
 
-export { SelectedFileRow };
 export type { SelectedFile };
+export { SelectedFileRow };

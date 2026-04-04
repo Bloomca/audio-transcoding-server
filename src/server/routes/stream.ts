@@ -1,7 +1,7 @@
-import type { FastifyInstance } from "fastify";
 import type { JobProgress } from "bullmq";
-import { createTranscodeQueue, createQueueEvents } from "../../shared/queue.js";
+import type { FastifyInstance } from "fastify";
 import type { TranscodeJobResult } from "../../shared/jobs.js";
+import { createQueueEvents, createTranscodeQueue } from "../../shared/queue.js";
 import {
   getOrCreateSession,
   getSessionJobs,
@@ -44,7 +44,11 @@ export async function streamRoute(app: FastifyInstance) {
 
       if (state === "completed") {
         const result = job.returnvalue as TranscodeJobResult;
-        send({ jobId, status: "completed", outputFilename: result.outputFilename });
+        send({
+          jobId,
+          status: "completed",
+          outputFilename: result.outputFilename,
+        });
       } else if (state === "failed") {
         send({ jobId, status: "failed", error: job.failedReason });
       } else if (state === "active") {
@@ -60,16 +64,32 @@ export async function streamRoute(app: FastifyInstance) {
       send({ jobId, status: "processing", progress: data });
     }
 
-    function onCompleted({ jobId, returnvalue }: { jobId: string; returnvalue: string }) {
+    function onCompleted({
+      jobId,
+      returnvalue,
+    }: {
+      jobId: string;
+      returnvalue: string;
+    }) {
       if (!sessionJobs.has(jobId)) return;
       // BullMQ's type declares returnvalue as string (the raw Redis value), but v5 calls JSON.parse
       // on it internally before emitting (queue-events.js:103), so the runtime value is already a
       // parsed object. Cast reflects reality; see https://github.com/taskforcesh/bullmq/issues/1304
       const result = returnvalue as unknown as TranscodeJobResult;
-      send({ jobId, status: "completed", outputFilename: result.outputFilename });
+      send({
+        jobId,
+        status: "completed",
+        outputFilename: result.outputFilename,
+      });
     }
 
-    function onFailed({ jobId, failedReason }: { jobId: string; failedReason: string }) {
+    function onFailed({
+      jobId,
+      failedReason,
+    }: {
+      jobId: string;
+      failedReason: string;
+    }) {
       if (!sessionJobs.has(jobId)) return;
       send({ jobId, status: "failed", error: failedReason });
     }

@@ -1,5 +1,8 @@
 import type { Queue } from "bullmq";
-import type { TranscodeJobData, TranscodeJobResult } from "../../shared/jobs.js";
+import type {
+  TranscodeJobData,
+  TranscodeJobResult,
+} from "../../shared/jobs.js";
 
 export async function isQueueAtCapacity(
   queue: Queue<TranscodeJobData, TranscodeJobResult>,
