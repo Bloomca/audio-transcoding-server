@@ -110,13 +110,14 @@ export function createAppVM() {
     }
   }
 
-  async function handleDownloadAll() {
+  async function handleDownloadAll(format: string) {
     isZipping$.set(true);
     try {
       await downloadZip(
         selectedFiles$.get(),
         jobStatus$.get(),
         directoryName$.get(),
+        format,
       );
     } finally {
       isZipping$.set(false);

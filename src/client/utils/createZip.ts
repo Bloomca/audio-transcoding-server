@@ -20,6 +20,7 @@ async function downloadZip(
   files: SelectedFile[],
   statusMap: Map<FileId, JobStatus>,
   directoryName: string | null,
+  outputFormat: string,
 ): Promise<void> {
   const entries: Array<{ name: string; data: Uint8Array }> = [];
 
@@ -53,7 +54,8 @@ async function downloadZip(
       );
       const a = document.createElement("a");
       a.href = url;
-      a.download = directoryName ? `${directoryName}.zip` : "transcoded.zip";
+      const archiveBasename = directoryName ?? "transcoded";
+      a.download = `${archiveBasename} (${outputFormat}).zip`;
       a.click();
       URL.revokeObjectURL(url);
       resolve();
