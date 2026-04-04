@@ -3,7 +3,11 @@ import type { SelectedFile } from "../components/SelectedFileRow";
 import { openSSE } from "../utils/sseStream";
 import { jobStatus$ } from "../jobStatusStore";
 import { downloadZip } from "../utils/createZip";
-import { canTranscodeFile, transcode } from "../utils/transcoding";
+import {
+  canTranscodeFile,
+  transcode,
+  TranscodeRequestError,
+} from "../utils/transcoding";
 
 function mergeFilesById(
   prev: SelectedFile[],
@@ -20,6 +24,38 @@ export function createAppVM() {
   const selectedFiles$ = createState<SelectedFile[]>([]);
   const directoryName$ = createState<string | null>(null);
   const isZipping$ = createState(false);
+  const retryAfterSecs$ = createState<number | null>(null);
+
+  let retryCountdownInterval: ReturnType<typeof setInterval> | null = null;
+
+  function startRetryCountdown(durationSecs: number) {
+    const clamped = Math.max(1, Math.ceil(durationSecs));
+
+    if (retryCountdownInterval) {
+      clearInterval(retryCountdownInterval);
+      retryCountdownInterval = null;
+    }
+
+    retryAfterSecs$.set(clamped);
+
+    retryCountdownInterval = setInterval(() => {
+      const current = retryAfterSecs$.get();
+      if (current === null) {
+        clearInterval(retryCountdownInterval!);
+        retryCountdownInterval = null;
+        return;
+      }
+
+      if (current <= 1) {
+        retryAfterSecs$.set(null);
+        clearInterval(retryCountdownInterval!);
+        retryCountdownInterval = null;
+        return;
+      }
+
+      retryAfterSecs$.set(current - 1);
+    }, 1000);
+  }
 
   function handlePickTracks(files: SelectedFile[]) {
     selectedFiles$.update((prev) => mergeFilesById(prev, files));
@@ -58,6 +94,13 @@ export function createAppVM() {
       });
       openSSE();
     } catch (error) {
+      if (
+        error instanceof TranscodeRequestError &&
+        (error.statusCode === 429 || error.statusCode === 503)
+      ) {
+        startRetryCountdown(error.retryAfterSecs ?? 60);
+      }
+
       const message = error instanceof Error ? error.message : "Upload failed";
       jobStatus$.update((prev) => {
         const next = new Map(prev);
@@ -96,5 +139,6 @@ export function createAppVM() {
     handleDownloadAll,
     selectedFiles$,
     isZipping$,
+    retryAfterSecs$,
   };
 }

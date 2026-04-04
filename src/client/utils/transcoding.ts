@@ -2,6 +2,34 @@ import { jobStatus$ } from "../jobStatusStore";
 
 import type { SelectedFile } from "../components/SelectedFileRow";
 
+export class TranscodeRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+    public readonly retryAfterSecs?: number,
+  ) {
+    super(message);
+    this.name = "TranscodeRequestError";
+  }
+}
+
+function parseRetryAfterSeconds(headerValue: string | null): number | undefined {
+  if (!headerValue) return undefined;
+
+  const seconds = Number.parseInt(headerValue, 10);
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return seconds;
+  }
+
+  const retryAtMs = Date.parse(headerValue);
+  if (Number.isNaN(retryAtMs)) {
+    return undefined;
+  }
+
+  const remainingSecs = Math.ceil((retryAtMs - Date.now()) / 1000);
+  return remainingSecs > 0 ? remainingSecs : undefined;
+}
+
 export function canTranscodeFile(file: SelectedFile): boolean {
   if (file.kind !== "audio") return false;
 
@@ -53,7 +81,13 @@ export async function transcode(
         return;
       }
 
-      reject(new Error(body.error ?? "Failed to submit transcode request"));
+      reject(
+        new TranscodeRequestError(
+          body.error ?? "Failed to submit transcode request",
+          request.status,
+          parseRetryAfterSeconds(request.getResponseHeader("Retry-After")),
+        ),
+      );
     };
 
     request.onerror = () => reject(new Error("Network error"));
