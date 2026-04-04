@@ -21,4 +21,9 @@ export const config = {
     process.env.SESSION_LIMIT_RETRY_AFTER_SECS ?? "60",
     10,
   ),
+  rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS ?? "120", 10),
+  rateLimitTimeWindowMs: parseInt(
+    process.env.RATE_LIMIT_TIME_WINDOW_MS ?? "60000",
+    10,
+  ),
 };
