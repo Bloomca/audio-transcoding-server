@@ -102,6 +102,34 @@ describe("POST /transcode", () => {
     expect(response.json().error).toContain("Unsupported output format");
   });
 
+  it("returns 429 after too many /transcode requests in the time window", async () => {
+    const app = buildApp();
+
+    for (let i = 0; i < config.transcodeRateLimitMaxRequests; i += 1) {
+      const form = buildForm({ outputFormat: "mp3" });
+      const response = await app.inject({
+        method: "POST",
+        url: "/transcode",
+        payload: form,
+        headers: form.getHeaders(),
+      });
+
+      expect(response.statusCode).toBe(202);
+    }
+
+    const limitedForm = buildForm({ outputFormat: "mp3" });
+    const limitedResponse = await app.inject({
+      method: "POST",
+      url: "/transcode",
+      payload: limitedForm,
+      headers: limitedForm.getHeaders(),
+    });
+
+    expect(limitedResponse.statusCode).toBe(429);
+
+    await app.close();
+  });
+
   it("returns 429 when session has too many in-flight jobs", async () => {
     if (config.maxInFlightJobsPerSession >= config.maxQueueDepth) {
       throw new Error(

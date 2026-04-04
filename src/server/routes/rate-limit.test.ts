@@ -22,4 +22,21 @@ describe("global rate limit", () => {
 
     await app.close();
   });
+
+  it("does not apply rate limits to /metrics", async () => {
+    const app = buildApp();
+
+    for (let i = 0; i < config.rateLimitMaxRequests + 5; i += 1) {
+      const response = await app.inject({ method: "GET", url: "/metrics" });
+      expect(response.statusCode).toBe(200);
+    }
+
+    const statusResponse = await app.inject({
+      method: "GET",
+      url: "/status/non-existent-id",
+    });
+    expect(statusResponse.statusCode).toBe(404);
+
+    await app.close();
+  });
 });

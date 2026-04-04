@@ -64,7 +64,17 @@ function replySessionBusy(reply: ReplyLike) {
 }
 
 export async function transcodeRoute(app: FastifyInstance) {
-  app.post("/transcode", async (request, reply) => {
+  app.post(
+    "/transcode",
+    {
+      config: {
+        rateLimit: {
+          max: config.transcodeRateLimitMaxRequests,
+          timeWindow: config.transcodeRateLimitTimeWindowMs,
+        },
+      },
+    },
+    async (request, reply) => {
     if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
       return replyQueueBusy(reply);
     }

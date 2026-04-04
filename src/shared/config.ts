@@ -26,4 +26,12 @@ export const config = {
     process.env.RATE_LIMIT_TIME_WINDOW_MS ?? "60000",
     10,
   ),
+  transcodeRateLimitMaxRequests: parseInt(
+    process.env.TRANSCODE_RATE_LIMIT_MAX_REQUESTS ?? "20",
+    10,
+  ),
+  transcodeRateLimitTimeWindowMs: parseInt(
+    process.env.TRANSCODE_RATE_LIMIT_TIME_WINDOW_MS ?? "60000",
+    10,
+  ),
 };
