@@ -10,5 +10,5 @@ type JobStatus =
 
 const jobStatus$ = createState<Map<FileId, JobStatus>>(new Map());
 
-export { jobStatus$ };
 export type { JobStatus };
+export { jobStatus$ };

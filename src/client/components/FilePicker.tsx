@@ -1,6 +1,6 @@
 import { createRef, onMount } from "veles";
+import { createFilePickerVM } from "../vms/FilePickerViewModel";
 import type { SelectedFile } from "./SelectedFileRow";
-import { createFilePickerVM } from '../vms/FilePickerViewModel'
 
 type FilePickerProps = {
   onPickTracks?: (files: SelectedFile[]) => void;
@@ -15,7 +15,7 @@ function FilePicker({ onPickTracks, onPickFolders }: FilePickerProps) {
     folderInputRef.current?.setAttribute("webkitdirectory", "");
   });
 
-  const vm = createFilePickerVM(onPickTracks, onPickFolders)
+  const vm = createFilePickerVM(onPickTracks, onPickFolders);
 
   return (
     <section class="panel">

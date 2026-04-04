@@ -1,5 +1,5 @@
-import { createStableFileId } from "../utils/fileId";
 import type { SelectedFile } from "../components/SelectedFileRow";
+import { createStableFileId } from "../utils/fileId";
 
 const AUDIO_EXTENSIONS = new Set([
   "flac",

@@ -5,12 +5,10 @@ const sessionStore = new Map<string, Set<string>>();
 
 function parseCookie(
   cookieHeader: string | undefined,
-  name: string
+  name: string,
 ): string | undefined {
   if (!cookieHeader) return undefined;
-  const match = cookieHeader.match(
-    new RegExp(`(?:^|;\\s*)${name}=([^;]*)`)
-  );
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : undefined;
 }
 
@@ -40,9 +38,9 @@ function sessionCookie(sessionId: string): string {
 }
 
 export {
-  parseCookie,
-  getOrCreateSession,
   addJobToSession,
+  getOrCreateSession,
   getSessionJobs,
+  parseCookie,
   sessionCookie,
 };

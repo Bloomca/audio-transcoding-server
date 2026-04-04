@@ -1,6 +1,6 @@
+import { access, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { access, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { cleanupExpiredStorageFiles } from "./storage-cleanup.js";
 
@@ -18,8 +18,16 @@ describe("storage cleanup", () => {
 
     const nowMs = Date.now();
     const expiredMs = nowMs - 6 * 60 * 60 * 1000;
-    await utimes(path.join(storagePath, expiredDelete), expiredMs / 1000, expiredMs / 1000);
-    await utimes(path.join(storagePath, expiredProtected), expiredMs / 1000, expiredMs / 1000);
+    await utimes(
+      path.join(storagePath, expiredDelete),
+      expiredMs / 1000,
+      expiredMs / 1000,
+    );
+    await utimes(
+      path.join(storagePath, expiredProtected),
+      expiredMs / 1000,
+      expiredMs / 1000,
+    );
 
     const queue = {
       getJobs: async () => [{ data: { savedFilename: expiredProtected } }],
@@ -33,9 +41,15 @@ describe("storage cleanup", () => {
     });
 
     expect(result.deleted).toBe(1);
-    await expect(access(path.join(storagePath, expiredDelete))).rejects.toThrow();
-    await expect(access(path.join(storagePath, expiredProtected))).resolves.toBeUndefined();
-    await expect(access(path.join(storagePath, freshFile))).resolves.toBeUndefined();
+    await expect(
+      access(path.join(storagePath, expiredDelete)),
+    ).rejects.toThrow();
+    await expect(
+      access(path.join(storagePath, expiredProtected)),
+    ).resolves.toBeUndefined();
+    await expect(
+      access(path.join(storagePath, freshFile)),
+    ).resolves.toBeUndefined();
 
     await rm(storagePath, { recursive: true, force: true });
   });
@@ -46,7 +60,10 @@ describe("storage cleanup", () => {
     } as Parameters<typeof cleanupExpiredStorageFiles>[0]["queue"];
 
     const result = await cleanupExpiredStorageFiles({
-      storagePath: path.join(os.tmpdir(), `audio-cleanup-missing-${Date.now()}`),
+      storagePath: path.join(
+        os.tmpdir(),
+        `audio-cleanup-missing-${Date.now()}`,
+      ),
       ttlMs: 5 * 60 * 60 * 1000,
       queue,
     });

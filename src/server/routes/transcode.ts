@@ -1,25 +1,25 @@
+import { randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { mkdir, unlink } from "node:fs/promises";
-import { pipeline } from "node:stream/promises";
-import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { pipeline } from "node:stream/promises";
 import type { FastifyInstance } from "fastify";
 import { config } from "../../shared/config.js";
-import { createTranscodeQueue } from "../../shared/queue.js";
 import {
   isSupportedFormat,
-  SUPPORTED_FORMATS,
   type OutputFormat,
+  SUPPORTED_FORMATS,
 } from "../../shared/formats.js";
+import { createTranscodeQueue } from "../../shared/queue.js";
 import {
-  getOrCreateSession,
   addJobToSession,
+  getOrCreateSession,
   getSessionJobs,
   sessionCookie,
 } from "../session-store.js";
 import {
-  isQueueAtCapacity,
   countSessionInFlightJobs,
+  isQueueAtCapacity,
 } from "./transcode-queue-guards.js";
 
 const queue = createTranscodeQueue();

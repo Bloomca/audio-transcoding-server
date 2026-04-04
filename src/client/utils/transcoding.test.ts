@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SelectedFile } from "../components/SelectedFileRow";
+import { jobStatus$ } from "../jobStatusStore";
+import { asFileId } from "./fileId";
 import {
   canTranscodeFile,
+  type TranscodeRequestError,
   transcode,
-  TranscodeRequestError,
 } from "./transcoding";
-import { jobStatus$ } from "../jobStatusStore";
-import type { SelectedFile } from "../components/SelectedFileRow";
-import { asFileId } from "./fileId";
 
-function createSelectedFile(overrides: Partial<SelectedFile> = {}): SelectedFile {
+function createSelectedFile(
+  overrides: Partial<SelectedFile> = {},
+): SelectedFile {
   return {
     id: asFileId("file-1"),
     label: "track.flac",
@@ -37,12 +39,16 @@ describe("client/utils/transcoding", () => {
 
     const queuedAudio = createSelectedFile({ id: asFileId("file-queue") });
     jobStatus$.set(
-      new Map([[asFileId("file-queue"), { status: "pending", jobId: "job-1" }]]),
+      new Map([
+        [asFileId("file-queue"), { status: "pending", jobId: "job-1" }],
+      ]),
     );
     expect(canTranscodeFile(queuedAudio)).toBe(false);
 
     jobStatus$.set(
-      new Map([[asFileId("file-queue"), { status: "failed", error: "ffmpeg failed" }]]),
+      new Map([
+        [asFileId("file-queue"), { status: "failed", error: "ffmpeg failed" }],
+      ]),
     );
     expect(canTranscodeFile(queuedAudio)).toBe(true);
   });
@@ -60,14 +66,22 @@ describe("client/utils/transcoding", () => {
       method: string | undefined;
       url: string | undefined;
       upload = {
-        onprogress:
-          null as
-            | ((this: XMLHttpRequestUpload, ev: ProgressEvent<EventTarget>) => unknown)
-            | null,
+        onprogress: null as
+          | ((
+              this: XMLHttpRequestUpload,
+              ev: ProgressEvent<EventTarget>,
+            ) => unknown)
+          | null,
       };
-      onload: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
-      onerror: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
-      onabort: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+      onload:
+        | ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown)
+        | null = null;
+      onerror:
+        | ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown)
+        | null = null;
+      onabort:
+        | ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown)
+        | null = null;
 
       open(method: string, url: string) {
         this.method = method;
@@ -75,12 +89,19 @@ describe("client/utils/transcoding", () => {
       }
 
       send(body?: Document | XMLHttpRequestBodyInit | null) {
-        requests.push({ method: this.method, url: this.url, body: body ?? null });
-        this.upload.onprogress?.call(this as unknown as XMLHttpRequestUpload, {
-          lengthComputable: true,
-          loaded: 5,
-          total: 10,
-        } as ProgressEvent<EventTarget>);
+        requests.push({
+          method: this.method,
+          url: this.url,
+          body: body ?? null,
+        });
+        this.upload.onprogress?.call(
+          this as unknown as XMLHttpRequestUpload,
+          {
+            lengthComputable: true,
+            loaded: 5,
+            total: 10,
+          } as ProgressEvent<EventTarget>,
+        );
         this.onload?.call(
           this as unknown as XMLHttpRequest,
           {} as ProgressEvent<EventTarget>,
@@ -120,14 +141,22 @@ describe("client/utils/transcoding", () => {
       status = 429;
       responseText = JSON.stringify({ error: "Too many requests" });
       upload = {
-        onprogress:
-          null as
-            | ((this: XMLHttpRequestUpload, ev: ProgressEvent<EventTarget>) => unknown)
-            | null,
+        onprogress: null as
+          | ((
+              this: XMLHttpRequestUpload,
+              ev: ProgressEvent<EventTarget>,
+            ) => unknown)
+          | null,
       };
-      onload: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
-      onerror: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
-      onabort: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown) | null = null;
+      onload:
+        | ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown)
+        | null = null;
+      onerror:
+        | ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown)
+        | null = null;
+      onabort:
+        | ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => unknown)
+        | null = null;
 
       open() {}
 

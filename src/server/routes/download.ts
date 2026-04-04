@@ -2,8 +2,8 @@ import { createReadStream } from "node:fs";
 import path from "node:path";
 import type { FastifyInstance } from "fastify";
 import { config } from "../../shared/config.js";
-import { createTranscodeQueue } from "../../shared/queue.js";
 import { FORMAT_EXTENSIONS } from "../../shared/formats.js";
+import { createTranscodeQueue } from "../../shared/queue.js";
 
 const queue = createTranscodeQueue();
 
@@ -37,7 +37,7 @@ export async function downloadRoute(app: FastifyInstance) {
 
     const originalBasename = path.basename(
       job.data.originalFilename,
-      path.extname(job.data.originalFilename)
+      path.extname(job.data.originalFilename),
     );
     const downloadFilename = `${originalBasename}.${FORMAT_EXTENSIONS[job.data.outputFormat]}`;
 
@@ -51,7 +51,10 @@ export async function downloadRoute(app: FastifyInstance) {
     const asciiFallback = downloadFilename.replace(/[^\x20-\x7E]/g, "_");
     const encoded = encodeURIComponent(downloadFilename);
     return reply
-      .header("Content-Disposition", `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`)
+      .header(
+        "Content-Disposition",
+        `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`,
+      )
       .header("Content-Type", "application/octet-stream")
       .send(stream);
   });

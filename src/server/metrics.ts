@@ -1,5 +1,10 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { collectDefaultMetrics, Counter, Histogram, Registry } from "prom-client";
+import {
+  Counter,
+  collectDefaultMetrics,
+  Histogram,
+  Registry,
+} from "prom-client";
 
 function getRouteLabel(request: FastifyRequest): string {
   return request.routeOptions?.url ?? request.url.split("?")[0] ?? "unknown";
@@ -38,7 +43,8 @@ export function registerMetrics(app: FastifyInstance) {
   app.addHook("onResponse", (request, reply, done) => {
     const start = requestStartedAt.get(request);
     if (start) {
-      const durationSecs = Number(process.hrtime.bigint() - start) / 1_000_000_000;
+      const durationSecs =
+        Number(process.hrtime.bigint() - start) / 1_000_000_000;
       const labels = {
         method: request.method,
         route: getRouteLabel(request),

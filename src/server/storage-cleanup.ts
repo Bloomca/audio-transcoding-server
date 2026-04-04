@@ -1,13 +1,10 @@
-import path from "node:path";
 import { readdir, stat, unlink } from "node:fs/promises";
+import path from "node:path";
 import type { Queue } from "bullmq";
-import { createTranscodeQueue } from "../shared/queue.js";
 import type { TranscodeJobData, TranscodeJobResult } from "../shared/jobs.js";
+import { createTranscodeQueue } from "../shared/queue.js";
 
-type QueueLike = Pick<
-  Queue<TranscodeJobData, TranscodeJobResult>,
-  "getJobs"
->;
+type QueueLike = Pick<Queue<TranscodeJobData, TranscodeJobResult>, "getJobs">;
 
 type LoggerLike = {
   info: (message: string) => void;
@@ -32,12 +29,14 @@ export async function cleanupExpiredStorageFiles(options: {
 
   let deleted = 0;
 
-  const entries = await readdir(storagePath, { withFileTypes: true }).catch((error) => {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return [];
-    }
-    throw error;
-  });
+  const entries = await readdir(storagePath, { withFileTypes: true }).catch(
+    (error) => {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return [];
+      }
+      throw error;
+    },
+  );
 
   for (const entry of entries) {
     if (!entry.isFile()) continue;

@@ -1,5 +1,5 @@
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 
 export const config = {
   redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
@@ -21,7 +21,10 @@ export const config = {
     process.env.SESSION_LIMIT_RETRY_AFTER_SECS ?? "60",
     10,
   ),
-  rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS ?? "120", 10),
+  rateLimitMaxRequests: parseInt(
+    process.env.RATE_LIMIT_MAX_REQUESTS ?? "120",
+    10,
+  ),
   rateLimitTimeWindowMs: parseInt(
     process.env.RATE_LIMIT_TIME_WINDOW_MS ?? "60000",
     10,

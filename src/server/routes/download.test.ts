@@ -1,24 +1,30 @@
-import { describe, it, expect, afterAll } from "vitest";
-import { readFile, access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import FormData from "form-data";
 import { Worker } from "bullmq";
-import { buildApp } from "../app.js";
+import FormData from "form-data";
+import { afterAll, describe, expect, it } from "vitest";
 import { config } from "../../shared/config.js";
+import type {
+  TranscodeJobData,
+  TranscodeJobResult,
+} from "../../shared/jobs.js";
 import { TRANSCODE_QUEUE } from "../../shared/queue.js";
 import { processTranscodeJob } from "../../worker/processor.js";
-import type { TranscodeJobData, TranscodeJobResult } from "../../shared/jobs.js";
+import { buildApp } from "../app.js";
 import { useQueue } from "../test-helpers.js";
 
-const FIXTURES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../../../fixtures");
+const FIXTURES_DIR = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../fixtures",
+);
 
 useQueue();
 
 const worker = new Worker<TranscodeJobData, TranscodeJobResult>(
   TRANSCODE_QUEUE,
   processTranscodeJob,
-  { connection: { url: config.redisUrl } }
+  { connection: { url: config.redisUrl } },
 );
 
 afterAll(async () => {
@@ -30,7 +36,10 @@ async function submitRealFile(outputFormat = "mp3") {
   const fileBuffer = await readFile(path.join(FIXTURES_DIR, "test.flac"));
 
   const form = new FormData();
-  form.append("file", fileBuffer, { filename: "test.flac", contentType: "audio/flac" });
+  form.append("file", fileBuffer, {
+    filename: "test.flac",
+    contentType: "audio/flac",
+  });
   form.append("outputFormat", outputFormat);
 
   const response = await app.inject({
@@ -43,7 +52,10 @@ async function submitRealFile(outputFormat = "mp3") {
   return { app, id: response.json().id as string };
 }
 
-async function waitForOutputFile(outputFilename: string, timeoutMs = 25_000): Promise<void> {
+async function waitForOutputFile(
+  outputFilename: string,
+  timeoutMs = 25_000,
+): Promise<void> {
   const outputPath = path.join(config.storagePath, outputFilename);
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {

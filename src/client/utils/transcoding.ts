@@ -1,6 +1,5 @@
-import { jobStatus$ } from "../jobStatusStore";
-
 import type { SelectedFile } from "../components/SelectedFileRow";
+import { jobStatus$ } from "../jobStatusStore";
 
 export class TranscodeRequestError extends Error {
   constructor(
@@ -13,7 +12,9 @@ export class TranscodeRequestError extends Error {
   }
 }
 
-function parseRetryAfterSeconds(headerValue: string | null): number | undefined {
+function parseRetryAfterSeconds(
+  headerValue: string | null,
+): number | undefined {
   if (!headerValue) return undefined;
 
   const seconds = Number.parseInt(headerValue, 10);
@@ -56,7 +57,10 @@ export async function transcode(
 
     request.upload.onprogress = (event) => {
       if (!event.lengthComputable || event.total === 0) return;
-      const progress = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      const progress = Math.min(
+        100,
+        Math.round((event.loaded / event.total) * 100),
+      );
       onUploadProgress?.(progress);
     };
 
