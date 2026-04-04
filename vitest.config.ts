@@ -9,6 +9,7 @@ export default defineConfig({
   test: {
     pool: "forks",
     fileParallelism: false,
-    exclude: ["dist/**"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    exclude: ["dist/**", "node_modules/**"],
   },
 });
