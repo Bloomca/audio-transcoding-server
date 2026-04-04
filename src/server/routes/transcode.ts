@@ -34,7 +34,10 @@ async function handleTranscodeRequest(
   await queue.add(
     "transcode",
     { jobId, savedFilename, originalFilename, outputFormat },
-    { jobId },
+    {
+      jobId,
+      removeOnComplete: { age: config.storageFileTtlSeconds },
+    },
   );
 
   return jobId;
@@ -75,85 +78,86 @@ export async function transcodeRoute(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-    if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
-      return replyQueueBusy(reply);
-    }
-
-    await mkdir(config.storagePath, { recursive: true });
-
-    let uploadedFile:
-      | { savedFilename: string; originalFilename: string }
-      | undefined;
-    let outputFormat: string | undefined;
-
-    for await (const part of request.parts()) {
-      if (part.type === "file") {
-        // multipart form can include multiple files, and there is no easy way
-        // to verify this. We only support 1 file exclusively per request, so
-        // in case there is more than 1 file attached, we delete the first file
-        // and reply with 400
-        if (uploadedFile) {
-          part.file.resume();
-          await removeUploadedFile(uploadedFile.savedFilename);
-          return reply.code(400).send({ error: "Only one file is allowed" });
-        }
-
-        const ext = path.extname(part.filename);
-        const savedFilename = `${randomUUID()}${ext}`;
-        const originalFilename = part.filename;
-        await pipeline(
-          part.file,
-          createWriteStream(path.join(config.storagePath, savedFilename)),
-        );
-        uploadedFile = { savedFilename, originalFilename };
-      } else if (part.fieldname === "outputFormat") {
-        outputFormat = part.value as string;
+      if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
+        return replyQueueBusy(reply);
       }
-    }
 
-    if (!uploadedFile) {
-      return reply.code(400).send({ error: "No file provided" });
-    }
+      await mkdir(config.storagePath, { recursive: true });
 
-    const { savedFilename, originalFilename } = uploadedFile;
+      let uploadedFile:
+        | { savedFilename: string; originalFilename: string }
+        | undefined;
+      let outputFormat: string | undefined;
 
-    if (!outputFormat) {
-      await removeUploadedFile(savedFilename);
-      return reply.code(400).send({ error: "outputFormat is required" });
-    }
+      for await (const part of request.parts()) {
+        if (part.type === "file") {
+          // multipart form can include multiple files, and there is no easy way
+          // to verify this. We only support 1 file exclusively per request, so
+          // in case there is more than 1 file attached, we delete the first file
+          // and reply with 400
+          if (uploadedFile) {
+            part.file.resume();
+            await removeUploadedFile(uploadedFile.savedFilename);
+            return reply.code(400).send({ error: "Only one file is allowed" });
+          }
 
-    if (!isSupportedFormat(outputFormat)) {
-      await removeUploadedFile(savedFilename);
-      return reply.code(400).send({
-        error: `Unsupported output format. Supported formats: ${SUPPORTED_FORMATS.join(", ")}`,
-      });
-    }
+          const ext = path.extname(part.filename);
+          const savedFilename = `${randomUUID()}${ext}`;
+          const originalFilename = part.filename;
+          await pipeline(
+            part.file,
+            createWriteStream(path.join(config.storagePath, savedFilename)),
+          );
+          uploadedFile = { savedFilename, originalFilename };
+        } else if (part.fieldname === "outputFormat") {
+          outputFormat = part.value as string;
+        }
+      }
 
-    const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
-    const sessionJobs = getSessionJobs(sessionId)!;
+      if (!uploadedFile) {
+        return reply.code(400).send({ error: "No file provided" });
+      }
 
-    const inFlightJobs = await countSessionInFlightJobs(queue, sessionJobs);
-    if (inFlightJobs >= config.maxInFlightJobsPerSession) {
-      await removeUploadedFile(savedFilename);
-      return replySessionBusy(reply);
-    }
+      const { savedFilename, originalFilename } = uploadedFile;
 
-    if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
-      await removeUploadedFile(savedFilename);
-      return replyQueueBusy(reply);
-    }
+      if (!outputFormat) {
+        await removeUploadedFile(savedFilename);
+        return reply.code(400).send({ error: "outputFormat is required" });
+      }
 
-    const jobId = await handleTranscodeRequest(
-      savedFilename,
-      originalFilename,
-      outputFormat,
-    );
+      if (!isSupportedFormat(outputFormat)) {
+        await removeUploadedFile(savedFilename);
+        return reply.code(400).send({
+          error: `Unsupported output format. Supported formats: ${SUPPORTED_FORMATS.join(", ")}`,
+        });
+      }
 
-    addJobToSession(sessionId, jobId);
-    if (isNew) {
-      reply.header("Set-Cookie", sessionCookie(sessionId));
-    }
+      const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
+      const sessionJobs = getSessionJobs(sessionId)!;
 
-    return reply.code(202).send({ id: jobId });
-  });
+      const inFlightJobs = await countSessionInFlightJobs(queue, sessionJobs);
+      if (inFlightJobs >= config.maxInFlightJobsPerSession) {
+        await removeUploadedFile(savedFilename);
+        return replySessionBusy(reply);
+      }
+
+      if (await isQueueAtCapacity(queue, config.maxQueueDepth)) {
+        await removeUploadedFile(savedFilename);
+        return replyQueueBusy(reply);
+      }
+
+      const jobId = await handleTranscodeRequest(
+        savedFilename,
+        originalFilename,
+        outputFormat,
+      );
+
+      addJobToSession(sessionId, jobId);
+      if (isNew) {
+        reply.header("Set-Cookie", sessionCookie(sessionId));
+      }
+
+      return reply.code(202).send({ id: jobId });
+    },
+  );
 }
