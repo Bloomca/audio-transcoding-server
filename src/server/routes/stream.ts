@@ -14,10 +14,11 @@ const queueEvents = createQueueEvents();
 export async function streamRoute(app: FastifyInstance) {
   app.get("/status/stream", async (request, reply) => {
     const { sessionId, isNew } = getOrCreateSession(request.headers.cookie);
-    const sessionJobs = getSessionJobs(sessionId);
-    if (!sessionJobs) {
+    const sessionJobsMaybe = getSessionJobs(sessionId);
+    if (!sessionJobsMaybe) {
       return reply.code(500).send({ error: "Failed to initialize session" });
     }
+    const sessionJobs = sessionJobsMaybe;
 
     reply.hijack();
 
